@@ -5,8 +5,8 @@
       "name": "Ironwall Knight",
       "class": "Warrior",
       "passive": {
-        "name": "Iron Stance",
-        "description": "-1 incoming melee damage"
+        "name": "Hold the Line",
+        "description": "Enemies engaged with you get -1 to attack allies"
       },
       "stats": { "STR": 3, "DEX": 1, "INT": 0, "CON": 3 },
       "equipment": [
@@ -16,23 +16,14 @@
           "type": "weapon",
           "subtype": "melee",
           "effect": "+1 to attack roll",
-          "attackBonus": 1
+          "damageBonus": 1
         },
         {
           "id": "wooden_shield",
           "name": "Wooden Shield",
           "type": "armor",
-          "effect": "Block: roll d4 to reduce damage",
-          "blockDie": 4,
-          "uses": 1
-        },
-        {
-          "id": "healing_potion",
-          "name": "Healing Potion",
-          "type": "consumable",
-          "effect": "Restore d6 HP",
-          "healDie": 6,
-          "uses": 1
+          "effect": "Reduces incoming damage by 1",
+          "damageReduction": 1
         }
       ]
     },
@@ -52,23 +43,14 @@
           "type": "weapon",
           "subtype": "ranged",
           "effect": "+1 to ranged attack roll",
-          "attackBonus": 1
+          "damageBonus": 1
         },
         {
           "id": "leather_armor",
           "name": "Leather Armor",
           "type": "armor",
-          "effect": "Block: roll d4 to reduce damage",
-          "blockDie": 4,
-          "uses": 1
-        },
-        {
-          "id": "healing_herbs",
-          "name": "Healing Herbs",
-          "type": "consumable",
-          "effect": "Restore d6 HP",
-          "healDie": 6,
-          "uses": 1
+          "effect": "Reduces incoming damage by 1",
+          "damageReduction": 1
         }
       ]
     },
@@ -88,7 +70,7 @@
           "type": "weapon",
           "subtype": "melee",
           "effect": "+1 to attack roll",
-          "attackBonus": 1
+          "damageBonus": 1
         },
         {
           "id": "throwing_knives",
@@ -96,15 +78,7 @@
           "type": "weapon",
           "subtype": "ranged",
           "effect": "+1 to ranged attack roll",
-          "attackBonus": 1
-        },
-        {
-          "id": "smoke_pellet",
-          "name": "Smoke Pellet",
-          "type": "consumable",
-          "effect": "Restore d6 HP",
-          "healDie": 6,
-          "uses": 1
+          "damageBonus": 1
         }
       ]
     },
@@ -125,17 +99,119 @@
           "subtype": "ranged",
           "magic": true,
           "effect": "+1 to ranged spell attack (INT to damage)",
-          "attackBonus": 1
-        },
-        {
-          "id": "mana_potion",
-          "name": "Mana Potion",
-          "type": "consumable",
-          "effect": "Restore d6 HP",
-          "healDie": 6,
-          "uses": 1
+          "damageBonus": 1
         }
       ]
+    }
+  ],
+
+  "starterSkillCards": [
+    {
+      "id": "bandage",
+      "name": "Bandage",
+      "type": "skill",
+      "skillType": "bandage",
+      "targeting": "none",
+      "effect": "Heal CON HP",
+      "uses": 2
+    },
+    {
+      "id": "charge",
+      "name": "Charge",
+      "type": "skill",
+      "skillType": "charge",
+      "targeting": "zone",
+      "effect": "Move to connected zone and melee attack",
+      "range": "connected",
+      "uses": 1
+    },
+    {
+      "id": "power_strike",
+      "name": "Power Strike",
+      "type": "skill",
+      "skillType": "power_strike",
+      "targeting": "enemy",
+      "effect": "Melee attack with +1 weapon tier scaling",
+      "range": "melee",
+      "uses": 1
+    },
+    {
+      "id": "aimed_shot",
+      "name": "Aimed Shot",
+      "type": "skill",
+      "skillType": "aimed_shot",
+      "targeting": "enemy",
+      "effect": "Ranged attack with +2 accuracy",
+      "range": "ranged",
+      "uses": 1
+    },
+    {
+      "id": "disengage",
+      "name": "Disengage",
+      "type": "skill",
+      "skillType": "disengage",
+      "targeting": "zone",
+      "effect": "Move without provoking opportunity attacks",
+      "range": "connected",
+      "uses": 2
+    },
+    {
+      "id": "grappling_hook",
+      "name": "Grappling Hook",
+      "type": "skill",
+      "skillType": "grappling_hook",
+      "targeting": "zone",
+      "effect": "Move to any zone, no opportunity attack",
+      "range": "any",
+      "uses": 1
+    },
+    {
+      "id": "arcane_blast",
+      "name": "Arcane Blast",
+      "type": "skill",
+      "skillType": "arcane_blast",
+      "targeting": "zone",
+      "effect": "Deal INT+1 damage to all enemies in target zone",
+      "range": "connected",
+      "uses": 1
+    },
+    {
+      "id": "war_cry",
+      "name": "War Cry",
+      "type": "skill",
+      "skillType": "war_cry",
+      "targeting": "none",
+      "effect": "All heroes get +1 to attack rolls until next enemy turn",
+      "uses": 1
+    },
+    {
+      "id": "fire_flask",
+      "name": "Fire Flask",
+      "type": "skill",
+      "skillType": "fire_flask",
+      "targeting": "zone",
+      "effect": "Deal 3 damage to all enemies in target zone",
+      "range": "connected",
+      "uses": 1
+    }
+  ],
+
+  "starterConsumables": [
+    {
+      "id": "healing_potion",
+      "name": "Healing Potion",
+      "type": "consumable",
+      "effect": "Restore d6 HP",
+      "healDie": 6,
+      "uses": 1
+    },
+    {
+      "id": "smoke_bomb_card",
+      "name": "Smoke Bomb",
+      "type": "consumable",
+      "effect": "All enemies get -2 to next attack",
+      "smokeBomb": true,
+      "uses": 1
     }
   ],
 
@@ -251,7 +327,7 @@
           "name": "Bandit Thug",
           "behavior": "aggressive",
           "startZone": "treeline",
-          "stats": { "maxHp": 8, "STR": 1, "DEX": 1 }
+          "stats": { "maxHp": 8, "STR": 1, "DEX": 1, "damageBonus": 1 }
         }
       ]
     },
@@ -286,21 +362,21 @@
           "name": "Bandit Fighter",
           "behavior": "aggressive",
           "startZone": "main_chamber",
-          "stats": { "maxHp": 10, "STR": 2, "DEX": 1 }
+          "stats": { "maxHp": 10, "STR": 2, "DEX": 1, "damageBonus": 1 }
         },
         {
           "id": "bandit_fighter_2",
           "name": "Bandit Brawler",
           "behavior": "aggressive",
           "startZone": "supply_alcove",
-          "stats": { "maxHp": 9, "STR": 2, "DEX": 1 }
+          "stats": { "maxHp": 9, "STR": 2, "DEX": 1, "damageBonus": 1 }
         },
         {
           "id": "bandit_marksman",
           "name": "Bandit Marksman",
           "behavior": "ranged",
           "startZone": "ledge",
-          "stats": { "maxHp": 6, "STR": 1, "DEX": 1 }
+          "stats": { "maxHp": 6, "STR": 1, "DEX": 2, "damageBonus": 1 }
         }
       ]
     }
@@ -352,14 +428,14 @@
         "name": "Bandit Brute",
         "behavior": "aggressive",
         "startZone": "bar",
-        "stats": { "maxHp": 10, "STR": 2, "DEX": 1 }
+        "stats": { "maxHp": 10, "STR": 2, "DEX": 1, "damageBonus": 1 }
       },
       {
         "id": "bandit_archer",
         "name": "Bandit Archer",
         "behavior": "ranged",
         "startZone": "balcony",
-        "stats": { "maxHp": 7, "STR": 1, "DEX": 3 }
+        "stats": { "maxHp": 7, "STR": 1, "DEX": 3, "damageBonus": 1 }
       }
     ]
   },
@@ -368,7 +444,7 @@
     "name": "Ironwall Knight",
     "class": "Warrior",
     "passive": {
-      "name": "Iron Stance",
+      "name": "Hold the Line",
       "description": "-1 incoming melee damage"
     },
     "stats": {
@@ -387,15 +463,14 @@
       "type": "weapon",
       "subtype": "melee",
       "effect": "+1 to attack roll",
-      "attackBonus": 1
+      "damageBonus": 1
     },
     {
       "id": "wooden_shield",
       "name": "Wooden Shield",
       "type": "armor",
-      "effect": "Block: roll d4 to reduce damage",
-      "blockDie": 4,
-      "uses": 1
+      "effect": "Reduces incoming damage by 1",
+      "damageReduction": 1
     },
     {
       "id": "healing_potion",
@@ -411,7 +486,7 @@
       "type": "weapon",
       "subtype": "ranged",
       "effect": "+1 to ranged attack roll",
-      "attackBonus": 1
+      "damageBonus": 1
     }
   ],
 
@@ -427,10 +502,10 @@
   },
 
   "damageTiers": [
-    { "min": 2,  "max": 5,  "label": "Miss",       "damage": 0 },
-    { "min": 6,  "max": 8,  "label": "Graze",      "damage": 1 },
-    { "min": 9,  "max": 10, "label": "Hit",         "damage": 2 },
-    { "min": 11, "max": 11, "label": "Strong Hit",  "damage": 3 },
-    { "min": 12, "max": 99, "label": "Critical",    "damage": 4 }
+    { "min": 2,  "max": 6,  "label": "Miss",       "damage": 0, "weaponMultiplier": 0 },
+    { "min": 7,  "max": 10, "label": "Graze",      "damage": 1, "weaponMultiplier": 1 },
+    { "min": 11, "max": 13, "label": "Hit",         "damage": 2, "weaponMultiplier": 1 },
+    { "min": 14, "max": 15, "label": "Strong Hit",  "damage": 3, "weaponMultiplier": 2 },
+    { "min": 16, "max": 99, "label": "Critical",    "damage": 4, "weaponMultiplier": 2 }
   ]
 }

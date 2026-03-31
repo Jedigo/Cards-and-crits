@@ -1,10 +1,10 @@
 import gameData from '../data/gameData.json';
 import {
-  rollDie, roll2d6, getZone, isConnected, isHeroEngaged,
+  rollDie, roll2d8, getZone, isConnected, isHeroEngaged,
   getZoneTags, getTagEffect, getTier, addLog,
   resolveAttack, makeDiceState, formatRoll,
   applyDefensivePassive, applyOffensivePassive, getKeenEyeBonus,
-  getMaxHp, applySmokeBomb,
+  getMaxHp, getArmorReduction, getHoldTheLinePenalty, applySmokeBomb, resolveSkillEffect,
 } from './combatHelpers.js';
 
 const { tagEffects } = gameData;
@@ -84,6 +84,7 @@ function initCombatScene(sceneData, party, partyInventory, log) {
     selectedTarget: enemies[0]?.id || null,
     dice: { results: [], bonusDice: [], total: 0, tier: '', damage: 0 },
     smokeBombActive: false,
+    warCryActive: false,
   };
 }
 
@@ -168,6 +169,7 @@ function resolveEnemyTurns(scene, log) {
     const sameZone = enemy.zoneId === targetZone;
     const connected = isConnected(zones, enemy.zoneId, targetZone);
     const engaged = sameZone;
+    const holdPenalty = -getHoldTheLinePenalty(targetHero, enemy, heroCopies, heroZones);
 
     // --- AGGRESSIVE ---
     if (enemy.behavior === 'aggressive') {
@@ -185,16 +187,23 @@ function resolveEnemyTurns(scene, log) {
         const result = resolveAttack({
           STR: enemy.stats.STR || 0,
           DEX: enemy.stats.DEX || 0,
-          modifier: smokePenalty,
+          weaponBonus: enemy.stats.damageBonus || 0,
+          rollModifier: smokePenalty + holdPenalty,
           isRanged: false,
           attackerZone: enemy.zoneId,
           defenderZone: targetZone,
           zones,
         });
         lastDiceState = makeDiceState(result);
+        if (holdPenalty < 0) log = addLog(log, `Hold the Line! -1 to attack roll.`, 'passive');
 
         let damage = result.damage;
         ({ damage, log } = applyDefensivePassive(targetHero, damage, false, log));
+        const armorDR = getArmorReduction(targetHero);
+        if (armorDR > 0 && damage > 0) {
+          damage = Math.max(0, damage - armorDR);
+          log = addLog(log, `Armor absorbs ${armorDR} damage.`, 'defend');
+        }
 
         if (result.tier.damage > 0) {
           targetHero.hp = Math.max(0, targetHero.hp - damage);
@@ -218,11 +227,11 @@ function resolveEnemyTurns(scene, log) {
           log = addLog(log, `${enemy.name} tries to disengage and retreat!`, 'enemy');
           // Opportunity attack from the hero in this zone
           const meleeWeapon = targetHero.equipment.find(e => e.type === 'weapon' && e.subtype === 'melee');
-          const bonus = meleeWeapon ? meleeWeapon.attackBonus : 0;
+          const weaponDmgBonus = meleeWeapon ? meleeWeapon.damageBonus : 0;
           const oppResult = resolveAttack({
             STR: targetHero.stats.STR || 0,
             DEX: targetHero.stats.DEX || 0,
-            modifier: bonus,
+            weaponBonus: weaponDmgBonus,
             isRanged: false,
             attackerZone: targetZone,
             defenderZone: enemy.zoneId,
@@ -247,7 +256,8 @@ function resolveEnemyTurns(scene, log) {
           const result = resolveAttack({
             STR: enemy.stats.STR || 0,
             DEX: enemy.stats.DEX || 0,
-            modifier: -2 + smokePenalty,
+            weaponBonus: enemy.stats.damageBonus || 0,
+            rollModifier: -2 + smokePenalty + holdPenalty,
             isRanged: false,
             attackerZone: enemy.zoneId,
             defenderZone: targetZone,
@@ -257,6 +267,11 @@ function resolveEnemyTurns(scene, log) {
 
           let damage = result.damage;
           ({ damage, log } = applyDefensivePassive(targetHero, damage, false, log));
+          const armorDR = getArmorReduction(targetHero);
+          if (armorDR > 0 && damage > 0) {
+            damage = Math.max(0, damage - armorDR);
+            log = addLog(log, `Armor absorbs ${armorDR} damage.`, 'defend');
+          }
 
           if (result.tier.damage > 0) {
             targetHero.hp = Math.max(0, targetHero.hp - damage);
@@ -275,16 +290,23 @@ function resolveEnemyTurns(scene, log) {
         const result = resolveAttack({
           STR: enemy.stats.STR || 0,
           DEX: enemy.stats.DEX || 0,
-          modifier: smokePenalty,
+          weaponBonus: enemy.stats.damageBonus || 0,
+          rollModifier: smokePenalty + holdPenalty,
           isRanged: true,
           attackerZone: enemy.zoneId,
           defenderZone: targetZone,
           zones,
         });
         lastDiceState = makeDiceState(result);
+        if (holdPenalty < 0) log = addLog(log, `Hold the Line! -1 to attack roll.`, 'passive');
 
         let damage = result.damage;
         ({ damage, log } = applyDefensivePassive(targetHero, damage, true, log));
+        const armorDR = getArmorReduction(targetHero);
+        if (armorDR > 0 && damage > 0) {
+          damage = Math.max(0, damage - armorDR);
+          log = addLog(log, `Armor absorbs ${armorDR} damage.`, 'defend');
+        }
 
         if (result.tier.damage > 0) {
           targetHero.hp = Math.max(0, targetHero.hp - damage);
@@ -306,16 +328,23 @@ function resolveEnemyTurns(scene, log) {
       const result = resolveAttack({
         STR: enemy.stats.STR || 0,
         DEX: enemy.stats.DEX || 0,
-        modifier: smokePenalty,
+        weaponBonus: enemy.stats.damageBonus || 0,
+        rollModifier: smokePenalty + holdPenalty,
         isRanged: false,
         attackerZone: enemy.zoneId,
         defenderZone: targetZone,
         zones,
       });
       lastDiceState = makeDiceState(result);
+      if (holdPenalty < 0) log = addLog(log, `Hold the Line! -1 to attack roll.`, 'passive');
 
       let damage = result.damage;
       ({ damage, log } = applyDefensivePassive(targetHero, damage, false, log));
+      const armorDR = getArmorReduction(targetHero);
+      if (armorDR > 0 && damage > 0) {
+        damage = Math.max(0, damage - armorDR);
+        log = addLog(log, `Armor absorbs ${armorDR} damage.`, 'defend');
+      }
 
       if (result.tier.damage > 0) {
         targetHero.hp = Math.max(0, targetHero.hp - damage);
@@ -359,6 +388,7 @@ function resolveEnemyTurns(scene, log) {
     enemies,
     dice: lastDiceState,
     smokeBombActive: false, // smoke bomb lasts 1 enemy round
+    warCryActive: false, // war cry lasts 1 round
   };
   updatedScene.selectedTarget = ensureValidTarget(updatedScene);
 
@@ -389,11 +419,71 @@ export function runReducer(state, action) {
 
     case 'START_RUN': {
       if (state.party.length !== 2) return state;
-      const names = state.party.map(h => h.name).join(' and ');
+      const loadouts = {};
+      state.party.forEach(h => { loadouts[h.id] = { skills: [], consumable: null }; });
+      return {
+        ...state,
+        phase: 'loadout',
+        loadouts,
+      };
+    }
+
+    // --- Loadout ---
+    case 'TOGGLE_SKILL_CARD': {
+      if (state.phase !== 'loadout') return state;
+      const { heroId, cardId } = action;
+      const heroLoadout = state.loadouts[heroId];
+      const hasCard = heroLoadout.skills.includes(cardId);
+      let newSkills;
+      if (hasCard) {
+        newSkills = heroLoadout.skills.filter(id => id !== cardId);
+      } else if (heroLoadout.skills.length < 3) {
+        newSkills = [...heroLoadout.skills, cardId];
+      } else {
+        return state;
+      }
+      return {
+        ...state,
+        loadouts: { ...state.loadouts, [heroId]: { ...heroLoadout, skills: newSkills } },
+      };
+    }
+
+    case 'SET_CONSUMABLE': {
+      if (state.phase !== 'loadout') return state;
+      const { heroId, cardId } = action;
+      const heroLoadout = state.loadouts[heroId];
+      const newConsumable = heroLoadout.consumable === cardId ? null : cardId;
+      return {
+        ...state,
+        loadouts: { ...state.loadouts, [heroId]: { ...heroLoadout, consumable: newConsumable } },
+      };
+    }
+
+    case 'CONFIRM_LOADOUT': {
+      if (state.phase !== 'loadout') return state;
+      const allReady = state.party.every(h => {
+        const lo = state.loadouts[h.id];
+        return lo.skills.length === 3 && lo.consumable !== null;
+      });
+      if (!allReady) return state;
+
+      // Merge skill + consumable cards into hero equipment
+      const skillCards = gameData.starterSkillCards;
+      const consumableCards = gameData.starterConsumables;
+      const updatedParty = state.party.map(h => {
+        const lo = state.loadouts[h.id];
+        const skills = lo.skills.map(id => skillCards.find(c => c.id === id)).filter(Boolean);
+        const consumable = consumableCards.find(c => c.id === lo.consumable);
+        const flexCards = consumable ? [...skills, consumable] : skills;
+        return { ...h, equipment: [...h.equipment, ...flexCards] };
+      });
+
+      const names = updatedParty.map(h => h.name).join(' and ');
       return {
         ...state,
         phase: 'scene_intro',
         currentSceneIndex: 0,
+        party: updatedParty,
         log: addLog(state.log, `${names} set out on their adventure!`, 'narrative'),
       };
     }
@@ -471,7 +561,7 @@ export function runReducer(state, action) {
           const result = resolveAttack({
             STR: attacker.stats.STR || 0,
             DEX: attacker.stats.DEX || 0,
-            modifier: 0,
+            weaponBonus: attacker.stats.damageBonus || 0,
             isRanged: false,
             attackerZone: attacker.zoneId,
             defenderZone: heroZone,
@@ -480,6 +570,11 @@ export function runReducer(state, action) {
 
           let damage = result.damage;
           ({ damage, log } = applyDefensivePassive(hero, damage, false, log));
+          const armorDR = getArmorReduction(hero);
+          if (armorDR > 0 && damage > 0) {
+            damage = Math.max(0, damage - armorDR);
+            log = addLog(log, `Armor absorbs ${armorDR} damage.`, 'defend');
+          }
 
           if (result.tier.damage > 0) {
             currentHp = Math.max(0, currentHp - damage);
@@ -533,15 +628,21 @@ export function runReducer(state, action) {
       const isRanged = !sameZone;
       const weaponType = isRanged ? 'ranged' : 'melee';
       const weapon = hero.equipment.find(e => e.type === 'weapon' && e.subtype === weaponType);
-      const attackBonus = weapon ? weapon.attackBonus : 0;
+      if (!weapon) {
+        const msg = isRanged ? 'No ranged weapon equipped!' : 'No melee weapon equipped!';
+        return { ...state, log: addLog(state.log, msg, 'warning') };
+      }
+      const weaponDmgBonus = weapon.damageBonus || 0;
       const isMagic = weapon?.magic || false;
       const keenEyeBonus = getKeenEyeBonus(hero, zones, heroZone, isRanged);
+      const warCryBonus = scene.warCryActive ? 1 : 0;
 
       const result = resolveAttack({
         STR: hero.stats.STR || 0,
         DEX: hero.stats.DEX || 0,
         INT: hero.stats.INT || 0,
-        modifier: attackBonus + keenEyeBonus,
+        weaponBonus: weaponDmgBonus,
+        rollModifier: keenEyeBonus + warCryBonus,
         isRanged,
         isMagic,
         attackerZone: heroZone,
@@ -614,16 +715,31 @@ export function runReducer(state, action) {
         return advanceAfterAction({ ...state, scene: newScene, log });
       }
 
+      // --- Skill cards ---
+      if (eq.type === 'skill') {
+        const { scene: skillScene, log: skillLog } = resolveSkillEffect(eq, hero, scene, action, log);
+        // Decrement uses on the hero in the updated scene
+        const skillHero = skillScene.heroes.find(h => h.id === hero.id);
+        const skillEqIndex = skillHero.equipment.findIndex(e => e.id === equipmentId);
+        const newEquipment = [...skillHero.equipment];
+        newEquipment[skillEqIndex] = { ...newEquipment[skillEqIndex], usesLeft: eq.usesLeft - 1 };
+        const finalHeroes = skillScene.heroes.map(h =>
+          h.id === hero.id ? { ...h, equipment: newEquipment } : h
+        );
+        const finalScene = { ...skillScene, heroes: finalHeroes };
+
+        if (finalScene.combatPhase === 'victory') {
+          return { ...state, scene: finalScene, log: skillLog };
+        }
+        return advanceAfterAction({ ...state, scene: finalScene, log: skillLog });
+      }
+
       if (eq.type === 'consumable' && eq.healDie) {
         const healRoll = rollDie(eq.healDie);
         const heal = Math.min(healRoll, hero.stats.maxHp - hero.hp);
         updatedHero = { ...hero, hp: hero.hp + heal };
         bonusDice.push({ sides: eq.healDie, value: healRoll, reason: 'healing' });
         log = addLog(log, `${hero.name} uses ${eq.name} — rolls d${eq.healDie}→${healRoll}, restores ${heal} HP!`, 'heal');
-      } else if (eq.type === 'armor' && eq.blockDie) {
-        const blockRoll = rollDie(eq.blockDie);
-        bonusDice.push({ sides: eq.blockDie, value: blockRoll, reason: 'block' });
-        log = addLog(log, `${hero.name} raises ${eq.name} — rolls d${eq.blockDie}→${blockRoll}, will block ${blockRoll} damage!`, 'defend');
       }
 
       const newEquipment = [...hero.equipment];

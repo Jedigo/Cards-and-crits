@@ -47,7 +47,10 @@ export default function HeroSelect({ party, dispatch }) {
                 </div>
                 <div className="hero-card-equipment">
                   {hero.equipment.map(eq => (
-                    <div key={eq.id} className="hero-card-eq">{eq.name}</div>
+                    <div key={eq.id} className={`hero-card-eq ${eq.type === 'skill' ? 'skill' : ''}`}>
+                      {eq.name}
+                      {eq.type === 'skill' && <span className="eq-effect"> — {eq.effect}</span>}
+                    </div>
                   ))}
                 </div>
               </div>

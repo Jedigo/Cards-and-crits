@@ -5,20 +5,21 @@ Pack-based adventure card RPG with dice combat and a tabletop aesthetic. See `Ga
 ## Project Structure
 
 ```
-prototype/          — React + Vite Phase 2 combat + run prototype
+prototype/          — React + Vite Phase 2+ combat + run prototype
   src/
-    data/gameData.json       — All game data (heroes, environments, scenes, enemies, equipment, dice tiers, zone tags)
+    data/gameData.json       — All game data (heroes, environments, scenes, enemies, skill/consumable pools, dice tiers, zone tags)
     state/
-      runReducer.js          — Run-level state machine (hero select → scene intro → combat/rest → scene complete → run end)
-      combatHelpers.js       — Extracted pure combat functions (attack resolution, dice, zone helpers, passives)
+      runReducer.js          — Run-level state machine (hero select → loadout → scene intro → combat/rest → scene complete → run end)
+      combatHelpers.js       — Extracted pure combat functions (attack resolution, dice, zone helpers, passives, skill effects)
       gameReducer.js         — Phase 1 legacy reducer (unused, kept as reference)
     components/
       RangeBandDisc.jsx      — Zone map SVG (dynamic layout, multi-hero standees)
-      ActionBar.jsx           — Player actions (move, retreat, attack, equipment, end turn) — multi-hero aware
-      DiceRoller.jsx          — Dice tray display (2d6 + bonus dice + d20 for skill checks)
+      ActionBar.jsx           — Player actions (move, retreat, attack, skills, equipment, end turn) — zone-targeting skill UI
+      DiceRoller.jsx          — Dice tray display (2d8 + bonus dice + exploding crits + d20 for skill checks)
       HealthBar.jsx           — HP bars with passive display
       CombatLog.jsx           — Scrolling combat event log
       HeroSelect.jsx          — Hero picker (choose 2 of 4 starter heroes)
+      LoadoutScreen.jsx       — Loadout picker (3 skill slots + 1 consumable per hero from shared pool)
       SceneIntro.jsx          — Scene title card with narrative text
       SceneComplete.jsx       — Scene outcome + continue flow
       PartyBar.jsx            — Party HP display with active hero indicator
@@ -41,12 +42,13 @@ cd prototype && npx vite build # Production build
 - Moving between zones costs your entire turn (1 action per turn)
 - Engagement: if enemies share your zone, you're engaged and can't freely move — must Retreat (provokes opportunity attack)
 
-### Dice System
-- 2d6 attack roll with tier-based damage (Miss/Graze/Hit/Strong Hit/Critical)
-- Modifiers shift the 2d6 total (weapon bonuses, zone tag bonuses)
-- Other dice (d4, d6, d8, d10, d12, d20) appear for special moments only (healing, blocking, crit bonuses, skill checks)
-- No separate damage roll on normal attacks — tier determines base damage + stat bonus
-- Stat bonus by attack type: STR (melee), INT (magic ranged via `"magic": true` flag), 0 (physical ranged — DEX boosts roll, not damage)
+### Dice System (2d8 Tier-Based with Exploding Crits)
+- 2d8 attack roll + stat modifier (STR melee, DEX ranged, INT magic) for accuracy
+- Damage tiers: Miss 2-6, Graze 7-10, Hit 11-13, Strong Hit 14-15, Critical 16+
+- **Stats add to roll (accuracy), weapons add to damage (via damageBonus × weaponMultiplier)**
+- Weapon scaling: Graze/Hit = weapon×1, Strong Hit/Crit = weapon×2
+- Exploding crits: natural 16 (double 8s) adds bonus d8 damage, chains on 8
+- Other dice (d4, d6, d8, d10, d12, d20) appear for special moments only (healing, crit bonuses, skill checks)
 
 ### Enemy AI Behaviors
 - `aggressive`: charges toward player, melees in same zone
@@ -59,6 +61,14 @@ cd prototype && npx vite build # Production build
 - **Weapon specialization**: heroes are specialists, not generalists (Warrior = melee only, Ranger = ranged only, Mage = spells only, Rogue = both). Gap-filling comes from skill/spell cards in flex slots, not redundant weapons
 - Equipment is unrestricted — any class can use any card
 - Figure passives define identity; active skills come from card packs
+
+### Skill & Equipment Cards
+- 9 starter skill cards in shared pool: Charge, Power Strike, Aimed Shot, Arcane Blast, Disengage, Grappling Hook, Bandage, War Cry, Fire Flask
+- Consumables are separate from skills (own slot): Healing Potion, Smoke Bomb
+- Skills use the `USE_EQUIPMENT` dispatch with `type: "skill"` and `skillType` field
+- Zone-targeting skills use pending skill UI state in ActionBar
+- Armor is passive `damageReduction`, not an active ability
+- Enemies have `damageBonus` on their stats for weapon-like damage scaling
 
 ### Cooldown System (Not Consumption)
 - Loadout cards (equipment + skills) go on cooldown after a run: Common/Uncommon = 1 run, Rare = 2, Legendary = 3
@@ -113,3 +123,10 @@ React prototype validates mechanics → rebuild in Godot for Steam release. No p
 - **Bug fixes**: fixed mutation bug in `resolveEnemyTurns` (shared hero object references causing phantom HP loss), added `ensureValidTarget` to auto-select living enemies on turn/hero changes, added cover absorption feedback to combat log
 - **GDD converted** from .docx to markdown (`Game_Design_Document_v0.7.md`) with all new design decisions integrated
 - **Next steps**: Phase 3 — more hero passives in action (Keen Eye, Shadow Step need testing with Ranger/Rogue picks), skill/spell cards in flex loadout slots, additional enemy behaviors, second run with different environment cards
+
+### 2026-03-31
+- **2d8 Exploding Dice System**: Replaced 2d6 with 2d8, new damage tiers, exploding crits on natural 16 (double 8s), stat/damage flip (stats→accuracy, weapons→damage with tier-scaled multipliers)
+- **Starter Skill Cards + Loadout Screen**: 9 skill cards + 2 consumables in shared pools. New loadout phase: 3 skill slots + 1 consumable slot per hero. Zone-targeting UI for skills like Charge, Arcane Blast, Fire Flask
+- **Passive Armor + Enemy Rebalance**: Armor is passive DR (not active block). All enemies get damageBonus: 1. Knight passive changed from Iron Stance (self-DR) to Hold the Line (enemies engaged with Knight get -1 to attack allies). Weapon specialization enforced (no ranged without ranged weapon)
+- **GDD v0.8**: New version with 2d8 system, stat/damage flip, exploding crits, future features
+- **Next steps**: Gear durability/repair (Tales of Arydia style), crafting consumables, more enemy behaviors, Parry skill (deferred — needs status tracking), second run environment

@@ -1,6 +1,7 @@
 import { useReducer } from 'react';
 import { runReducer, createInitialState } from './state/runReducer';
 import HeroSelect from './components/HeroSelect';
+import LoadoutScreen from './components/LoadoutScreen';
 import SceneIntro from './components/SceneIntro';
 import SceneComplete from './components/SceneComplete';
 import PartyBar from './components/PartyBar';
@@ -22,6 +23,16 @@ function App() {
         <h1 className="title">Starter Box — Choose Your Heroes</h1>
         <HeroSelect party={state.party} dispatch={dispatch} />
         <CombatLog log={state.log} />
+      </div>
+    );
+  }
+
+  // --- Loadout ---
+  if (state.phase === 'loadout') {
+    return (
+      <div className="game-table">
+        <h1 className="title">Starter Box — Loadout</h1>
+        <LoadoutScreen party={state.party} loadouts={state.loadouts} dispatch={dispatch} />
       </div>
     );
   }

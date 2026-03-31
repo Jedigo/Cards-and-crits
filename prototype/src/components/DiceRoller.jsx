@@ -11,12 +11,12 @@ export default function DiceRoller({ dice }) {
   if (!hasRoll) return null;
 
   return (
-    <div className="dice-roller">
-      {/* Main 2d6 */}
+    <div className={`dice-roller${dice.isNatural16 ? ' exploding' : ''}`}>
+      {/* Main 2d8 */}
       {dice.results.length > 0 && (
         <div className="dice-tray">
           {dice.results.map((value, i) => (
-            <div key={i} className="die d6">{value}</div>
+            <div key={i} className={`die d8${dice.isNatural16 ? ' natural16' : ''}`}>{value}</div>
           ))}
           {dice.total > 0 && (
             <div className="dice-total">= {dice.total}</div>
