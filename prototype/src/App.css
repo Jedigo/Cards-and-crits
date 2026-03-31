@@ -1,0 +1,348 @@
+/* === Game Table === */
+.game-table {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Georgia', serif;
+  color: #f5e6c8;
+}
+
+.title {
+  text-align: center;
+  font-size: 1.6rem;
+  margin-bottom: 16px;
+  color: #d4a574;
+  text-shadow: 1px 1px 2px #000;
+}
+
+/* === Battlefield Layout === */
+.battlefield {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.stats-column {
+  flex: 1;
+  max-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* === Zone Map === */
+.zone-map-container {
+  flex-shrink: 0;
+}
+
+/* === Target Selector === */
+.target-selector {
+  text-align: center;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.target-btn {
+  padding: 4px 10px;
+  margin: 0 4px;
+  border: 2px solid #5c3a1e;
+  border-radius: 4px;
+  background: #3d2b1a;
+  color: #f5e6c8;
+  font-family: 'Georgia', serif;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.target-btn.selected {
+  border-color: #e74c3c;
+  background: #5a1a1a;
+}
+
+.zone-tags {
+  font-size: 0.75rem;
+  color: #b8a080;
+}
+
+/* === Health Bars === */
+.health-bar-container {
+  background: #2a1f14;
+  border: 2px solid #5c3a1e;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.health-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+}
+
+.char-name {
+  font-weight: bold;
+}
+
+.hp-text {
+  color: #ccc;
+}
+
+.health-track {
+  height: 14px;
+  background: #1a1210;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #5c3a1e;
+}
+
+.health-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.passive-label {
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: #b8a080;
+  font-style: italic;
+}
+
+/* === Dice Roller === */
+.dice-roller {
+  background: #2a1f14;
+  border: 2px solid #5c3a1e;
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+}
+
+.dice-tray {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.die {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: bold;
+  border-radius: 6px;
+  border: 2px solid #5c3a1e;
+  background: #f5e6c8;
+  color: #2a1f14;
+}
+
+.die.d6 {
+  background: #f5e6c8;
+}
+
+.dice-total {
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #d4a574;
+}
+
+.dice-tray.bonus {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #5c3a1e;
+}
+
+.dice-tray.bonus .die {
+  width: 44px;
+  height: 44px;
+  flex-direction: column;
+  gap: 0;
+  font-size: 0.7rem;
+}
+
+.die.d4 { background: #2ecc71; color: #1a3a2a; border-color: #27ae60; }
+.die.d6 { background: #f5e6c8; color: #2a1f14; border-color: #5c3a1e; }
+.die.d8 { background: #9b59b6; color: #fff; border-color: #8e44ad; }
+.die.d10 { background: #e74c3c; color: #fff; border-color: #c0392b; }
+.die.d12 { background: #f1c40f; color: #2a1f14; border-color: #f39c12; }
+.die.d20 { background: #3498db; color: #fff; border-color: #2980b9; }
+
+.die-label {
+  font-size: 0.6rem;
+  opacity: 0.7;
+}
+
+.die-value {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.dice-result {
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+/* === Action Bar === */
+.action-bar {
+  background: #2a1f14;
+  border: 2px solid #5c3a1e;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.turn-info {
+  text-align: center;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #d4a574;
+}
+
+.actions, .equipment-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.equipment-actions {
+  margin-top: 8px;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border: 2px solid #5c3a1e;
+  border-radius: 4px;
+  background: #3d2b1a;
+  color: #f5e6c8;
+  font-family: 'Georgia', serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: #5c3a1e;
+  border-color: #d4a574;
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-btn.attack {
+  background: #5a1a1a;
+  border-color: #8b2020;
+}
+
+.action-btn.attack:hover:not(:disabled) {
+  background: #7b2020;
+}
+
+.action-btn.equipment {
+  background: #1a3a2a;
+  border-color: #2a5a3a;
+}
+
+.action-btn.equipment:hover:not(:disabled) {
+  background: #2a5a3a;
+}
+
+.action-btn.retreat {
+  background: #4a3a1a;
+  border-color: #8b7020;
+}
+
+.action-btn.retreat:hover:not(:disabled) {
+  background: #6b5020;
+}
+
+.engaged-warning {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #e74c3c;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+.action-btn.restart {
+  background: #1a3a5a;
+  border-color: #2a5a8b;
+  font-size: 1rem;
+  padding: 10px 24px;
+}
+
+.game-over {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.game-over.victory {
+  color: #f1c40f;
+  text-shadow: 0 0 10px #f39c12;
+}
+
+.game-over.defeat {
+  color: #c0392b;
+  text-shadow: 0 0 10px #7b1a1a;
+}
+
+/* === Combat Log === */
+.combat-log {
+  background: #2a1f14;
+  border: 2px solid #5c3a1e;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.combat-log h3 {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: #d4a574;
+}
+
+.log-entries {
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.log-entry {
+  padding: 2px 0;
+}
+
+.log-narrative { color: #f1c40f; }
+.log-attack { color: #e74c3c; }
+.log-enemy { color: #e67e22; }
+.log-move { color: #3498db; }
+.log-heal { color: #2ecc71; }
+.log-defend { color: #9b59b6; }
+.log-passive { color: #1abc9c; }
+.log-warning { color: #e74c3c; font-style: italic; }
+.log-turn { color: #7f8c8d; text-align: center; }
+.log-info { color: #bdc3c7; }
+
+/* Scrollbar */
+.log-entries::-webkit-scrollbar {
+  width: 6px;
+}
+
+.log-entries::-webkit-scrollbar-track {
+  background: #1a1210;
+}
+
+.log-entries::-webkit-scrollbar-thumb {
+  background: #5c3a1e;
+  border-radius: 3px;
+}

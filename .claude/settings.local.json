@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \":*)",
+      "Bash(unzip -p Game_Design_Document_v0.3.docx word/document.xml)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npx vite:*)",
+      "Bash(npm run:*)",
+      "Skill(update-config)",
+      "Bash(ls:*)",
+      "Bash(python3 -c \"import docx; print\\(''''ok''''\\)\")",
+      "Bash(pip3 install:*)",
+      "Bash(python3 -m pip install python-docx)",
+      "Bash(unzip -p /home/Jedigo/rpg-cardgame-project/Game_Design_Document_v0.6.docx word/document.xml)",
+      "Bash(git init:*)",
+      "Bash(git remote:*)",
+      "Bash(git:*)",
+      "Bash(/home/linuxbrew/.linuxbrew/bin/git --version)",
+      "Bash(/home/Jedigo/.linuxbrew/bin/git --version)",
+      "Read(//home/**)",
+      "Read(//run/host/var/home/linuxbrew/.linuxbrew/Cellar/git/2.53.0_1/bin/**)",
+      "Bash(/run/host/var/home/linuxbrew/.linuxbrew/bin/git --version)"
+    ]
+  }
+}

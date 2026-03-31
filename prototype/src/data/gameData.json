@@ -1,0 +1,117 @@
+{
+  "encounter": {
+    "name": "Tavern Brawl",
+    "zones": [
+      {
+        "id": "balcony",
+        "name": "Balcony",
+        "tags": ["elevated", "exposed"],
+        "connections": ["main_floor"]
+      },
+      {
+        "id": "main_floor",
+        "name": "Main Floor",
+        "tags": ["open", "chaotic"],
+        "connections": ["balcony", "bar", "back_room"]
+      },
+      {
+        "id": "bar",
+        "name": "Bar",
+        "tags": ["cover", "difficult"],
+        "connections": ["main_floor"]
+      },
+      {
+        "id": "back_room",
+        "name": "Back Room",
+        "tags": ["tight", "shadowed"],
+        "connections": ["main_floor"]
+      }
+    ],
+    "playerStart": "main_floor",
+    "enemies": [
+      {
+        "id": "bandit_brute",
+        "name": "Bandit Brute",
+        "behavior": "aggressive",
+        "startZone": "bar",
+        "stats": { "maxHp": 10, "strength": 2, "agility": 1 }
+      },
+      {
+        "id": "bandit_archer",
+        "name": "Bandit Archer",
+        "behavior": "ranged",
+        "startZone": "balcony",
+        "stats": { "maxHp": 7, "strength": 1, "agility": 3 }
+      }
+    ]
+  },
+
+  "hero": {
+    "name": "Ironwall Knight",
+    "class": "Warrior",
+    "passive": {
+      "name": "Iron Stance",
+      "description": "-1 incoming melee damage"
+    },
+    "stats": {
+      "maxHp": 20,
+      "strength": 3,
+      "agility": 1,
+      "wits": 1
+    }
+  },
+
+  "equipment": [
+    {
+      "id": "iron_sword",
+      "name": "Iron Sword",
+      "type": "weapon",
+      "subtype": "melee",
+      "effect": "+1 to attack roll",
+      "attackBonus": 1
+    },
+    {
+      "id": "wooden_shield",
+      "name": "Wooden Shield",
+      "type": "armor",
+      "effect": "Block: roll d4 to reduce damage",
+      "blockDie": 4,
+      "uses": 1
+    },
+    {
+      "id": "healing_potion",
+      "name": "Healing Potion",
+      "type": "consumable",
+      "effect": "Restore d6 HP",
+      "healDie": 6,
+      "uses": 1
+    },
+    {
+      "id": "throwing_knives",
+      "name": "Throwing Knives",
+      "type": "weapon",
+      "subtype": "ranged",
+      "effect": "+1 to ranged attack roll",
+      "attackBonus": 1
+    }
+  ],
+
+  "tagEffects": {
+    "elevated": { "rangedAttackBonus": 1, "description": "+1 to ranged attack rolls" },
+    "cover": { "rangedDamageReduction": 1, "description": "-1 incoming ranged damage" },
+    "shadowed": { "critBonusDie": 8, "description": "On crit: +d8 bonus damage" },
+    "tight": { "description": "Close quarters" },
+    "open": { "description": "No modifiers" },
+    "chaotic": { "description": "No modifiers" },
+    "exposed": { "description": "No defensive bonus" },
+    "difficult": { "description": "Rough terrain" }
+  },
+
+  "damageTiers": [
+    { "min": 2,  "max": 5,  "label": "Miss",       "damage": 0 },
+    { "min": 6,  "max": 8,  "label": "Graze",      "damage": 1 },
+    { "min": 9,  "max": 10, "label": "Hit",         "damage": 2 },
+    { "min": 11, "max": 11, "label": "Strong Hit",  "damage": 3 },
+    { "min": 12, "max": 99, "label": "Critical",    "damage": 4 }
+  ]
+}
