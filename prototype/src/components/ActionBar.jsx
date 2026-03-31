@@ -1,44 +1,47 @@
 import gameData from '../data/gameData.json';
+import { isConnected as checkConnected } from '../state/combatHelpers.js';
 
-const { encounter } = gameData;
+export default function ActionBar({ scene, dispatch }) {
+  const { combatPhase, heroes, enemies, activeHeroIndex, heroZones, environment } = scene;
+  const zones = environment.zones;
 
-function getZone(id) {
-  return encounter.zones.find(z => z.id === id);
-}
+  const gameOver = combatPhase === 'victory' || combatPhase === 'defeat';
+  const isPlayerTurn = combatPhase === 'player_turn';
 
-export default function ActionBar({ state, dispatch }) {
-  const gameOver = state.phase === 'victory' || state.phase === 'defeat';
-  const isPlayerTurn = state.phase === 'player_turn';
+  const hero = heroes[activeHeroIndex];
+  const heroZone = hero ? heroZones[hero.id] : null;
+  const currentZone = heroZone ? zones.find(z => z.id === heroZone) : null;
 
   if (gameOver) {
     return (
       <div className="action-bar">
-        <div className={`game-over ${state.phase}`}>
-          {state.phase === 'victory' ? 'VICTORY!' : 'DEFEATED'}
+        <div className={`game-over ${combatPhase}`}>
+          {combatPhase === 'victory' ? 'VICTORY!' : 'DEFEATED'}
         </div>
-        <button className="action-btn restart" onClick={() => dispatch({ type: 'RESTART' })}>
-          New Encounter
+        <button className="action-btn start-scene" onClick={() => dispatch({ type: 'COMPLETE_SCENE' })}>
+          Continue
         </button>
       </div>
     );
   }
 
-  const currentZone = getZone(state.heroZone);
-  const connectedZones = currentZone.connections.map(id => getZone(id));
-  const engaged = state.enemies.some(e => e.hp > 0 && e.zoneId === state.heroZone);
+  if (!hero || hero.hp <= 0 || !currentZone) return null;
+
+  const connectedZones = currentZone.connections.map(id => zones.find(z => z.id === id)).filter(Boolean);
+  const engaged = enemies.some(e => e.hp > 0 && e.zoneId === heroZone);
 
   // Target info
-  const target = state.enemies.find(e => e.id === state.selectedTarget);
+  const target = enemies.find(e => e.id === scene.selectedTarget);
   const targetAlive = target && target.hp > 0;
-  const targetSameZone = targetAlive && target.zoneId === state.heroZone;
-  const targetConnected = targetAlive && currentZone.connections.includes(target.zoneId);
+  const targetSameZone = targetAlive && target.zoneId === heroZone;
+  const targetConnected = targetAlive && checkConnected(zones, heroZone, target.zoneId) && !targetSameZone;
   const canAttack = isPlayerTurn && targetAlive && (targetSameZone || targetConnected);
   const attackLabel = targetSameZone ? `Melee ${target?.name}` : targetConnected ? `Ranged ${target?.name}` : 'Attack';
 
   return (
     <div className="action-bar">
       <div className="turn-info">
-        Turn {state.turn} — {currentZone.name}
+        Turn {scene.turn} — {hero.name} — {currentZone.name}
         <span className="zone-tags">
           {currentZone.tags.map(t => {
             const effect = gameData.tagEffects[t];
@@ -48,18 +51,21 @@ export default function ActionBar({ state, dispatch }) {
       </div>
 
       {/* Target selector */}
-      {state.enemies.filter(e => e.hp > 0).length > 1 && (
+      {enemies.filter(e => e.hp > 0).length > 1 && (
         <div className="target-selector">
           Target:{' '}
-          {state.enemies.filter(e => e.hp > 0).map(e => (
-            <button
-              key={e.id}
-              className={`target-btn ${e.id === state.selectedTarget ? 'selected' : ''}`}
-              onClick={() => dispatch({ type: 'SELECT_TARGET', targetId: e.id })}
-            >
-              {e.name} ({getZone(e.zoneId).name})
-            </button>
-          ))}
+          {enemies.filter(e => e.hp > 0).map(e => {
+            const eZone = zones.find(z => z.id === e.zoneId);
+            return (
+              <button
+                key={e.id}
+                className={`target-btn ${e.id === scene.selectedTarget ? 'selected' : ''}`}
+                onClick={() => dispatch({ type: 'SELECT_TARGET', targetId: e.id })}
+              >
+                {e.name} ({eZone?.name || e.zoneId})
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -68,7 +74,6 @@ export default function ActionBar({ state, dispatch }) {
       )}
 
       <div className="actions">
-        {/* Movement / Retreat buttons */}
         {connectedZones.map(zone => (
           engaged ? (
             <button
@@ -94,7 +99,7 @@ export default function ActionBar({ state, dispatch }) {
         <button
           className="action-btn attack"
           disabled={!canAttack}
-          onClick={() => dispatch({ type: 'ATTACK', targetId: state.selectedTarget })}
+          onClick={() => dispatch({ type: 'ATTACK', targetId: scene.selectedTarget })}
         >
           {attackLabel}
         </button>
@@ -109,7 +114,7 @@ export default function ActionBar({ state, dispatch }) {
       </div>
 
       <div className="equipment-actions">
-        {state.equipment.filter(e => e.type !== 'weapon').map(eq => (
+        {hero.equipment.filter(e => e.type !== 'weapon').map(eq => (
           <button
             key={eq.id}
             className="action-btn equipment"

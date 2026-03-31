@@ -42,10 +42,12 @@ function getTagEffect(tag, key) {
   return effect ? (effect[key] || 0) : 0;
 }
 
-// Core attack resolution: 2d6 + modifiers → tier damage + strength
-function resolveAttack({ attackerName, strength, modifier, isRanged, attackerZone, defenderZone }) {
+// Core attack resolution: 2d6 + modifiers → tier damage + STR (melee) or DEX bonus (ranged)
+function resolveAttack({ attackerName, STR, DEX, modifier, isRanged, attackerZone, defenderZone }) {
   const dice = roll2d6();
-  const raw = dice[0] + dice[1] + modifier;
+  // Ranged attacks add DEX to the roll; melee just uses the weapon modifier
+  const dexBonus = isRanged ? (DEX || 0) : 0;
+  const raw = dice[0] + dice[1] + modifier + dexBonus;
 
   // Zone tag bonuses to attack roll
   let zoneBonus = 0;
@@ -58,7 +60,8 @@ function resolveAttack({ attackerName, strength, modifier, isRanged, attackerZon
   const total = raw + zoneBonus;
   const tier = getTier(total);
 
-  let damage = tier.damage > 0 ? tier.damage + strength : 0;
+  // Melee damage adds STR; ranged damage adds 0 (DEX already boosted the roll)
+  let damage = tier.damage > 0 ? tier.damage + (STR || 0) : 0;
   const bonusDice = []; // track extra dice rolled for display
 
   // Zone tag damage modifiers
@@ -113,6 +116,8 @@ export function createInitialState() {
     zoneId: e.startZone,
   }));
 
+  const heroMaxHp = 8 + (gameData.hero.stats.CON || 0) * 2;
+
   return {
     phase: 'player_turn',
     turn: 1,
@@ -120,7 +125,8 @@ export function createInitialState() {
     heroZone: encounter.playerStart,
     hero: {
       ...gameData.hero,
-      hp: gameData.hero.stats.maxHp,
+      hp: heroMaxHp,
+      stats: { ...gameData.hero.stats, maxHp: heroMaxHp },
     },
 
     enemies,
@@ -165,7 +171,8 @@ function resolveEnemyTurns(state) {
       if (sameZone) {
         const result = resolveAttack({
           attackerName: enemy.name,
-          strength: enemy.stats.strength,
+          STR: enemy.stats.STR || 0,
+          DEX: enemy.stats.DEX || 0,
           modifier: 0,
           isRanged: false,
           attackerZone: enemy.zoneId,
@@ -201,7 +208,8 @@ function resolveEnemyTurns(state) {
           const bonus = weapon ? weapon.attackBonus : 0;
           const oppResult = resolveAttack({
             attackerName: hero.name,
-            strength: hero.stats.strength,
+            STR: hero.stats.STR || 0,
+            DEX: hero.stats.DEX || 0,
             modifier: bonus,
             isRanged: false,
             attackerZone: heroZone,
@@ -225,7 +233,8 @@ function resolveEnemyTurns(state) {
           // Cornered: attack with -2 penalty
           const result = resolveAttack({
             attackerName: enemy.name,
-            strength: enemy.stats.strength,
+            STR: enemy.stats.STR || 0,
+          DEX: enemy.stats.DEX || 0,
             modifier: -2,
             isRanged: false,
             attackerZone: enemy.zoneId,
@@ -252,7 +261,8 @@ function resolveEnemyTurns(state) {
       if (connected && !sameZone) {
         const result = resolveAttack({
           attackerName: enemy.name,
-          strength: enemy.stats.strength,
+          STR: enemy.stats.STR || 0,
+          DEX: enemy.stats.DEX || 0,
           modifier: 0,
           isRanged: true,
           attackerZone: enemy.zoneId,
@@ -285,7 +295,8 @@ function resolveEnemyTurns(state) {
     if (sameZone) {
       const result = resolveAttack({
         attackerName: enemy.name,
-        strength: enemy.stats.strength,
+        STR: enemy.stats.STR || 0,
+        DEX: enemy.stats.DEX || 0,
         modifier: 0,
         isRanged: false,
         attackerZone: enemy.zoneId,
@@ -357,7 +368,8 @@ export function gameReducer(state, action) {
       if (attacker) {
         const result = resolveAttack({
           attackerName: attacker.name,
-          strength: attacker.stats.strength,
+          STR: attacker.stats.STR || 0,
+          DEX: attacker.stats.DEX || 0,
           modifier: 0,
           isRanged: false,
           attackerZone: attacker.zoneId,
@@ -407,7 +419,8 @@ export function gameReducer(state, action) {
 
       const result = resolveAttack({
         attackerName: state.hero.name,
-        strength: state.hero.stats.strength,
+        STR: state.hero.stats.STR || 0,
+        DEX: state.hero.stats.DEX || 0,
         modifier: attackBonus,
         isRanged,
         attackerZone: state.heroZone,

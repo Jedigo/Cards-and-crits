@@ -1,15 +1,5 @@
 import gameData from '../data/gameData.json';
 
-const { encounter } = gameData;
-
-// Layout positions for zones on the SVG canvas
-const ZONE_POSITIONS = {
-  main_floor: { x: 200, y: 200 },
-  balcony: { x: 200, y: 60 },
-  bar: { x: 60, y: 280 },
-  back_room: { x: 340, y: 280 },
-};
-
 const TAG_ICONS = {
   elevated: '\u2191',
   cover: '\u26E8',
@@ -21,19 +11,53 @@ const TAG_ICONS = {
   difficult: '',
 };
 
-export default function ZoneMap({ heroZone, enemies, selectedTarget, onSelectTarget }) {
+const HERO_COLORS = ['#2980b9', '#27ae60', '#8e44ad'];
+
+// Compute zone positions dynamically based on zone count
+function computeZonePositions(zones) {
+  const cx = 210, cy = 210, radius = 130;
+
+  if (zones.length === 1) {
+    return { [zones[0].id]: { x: cx, y: cy } };
+  }
+  if (zones.length === 2) {
+    return {
+      [zones[0].id]: { x: cx, y: cy - 80 },
+      [zones[1].id]: { x: cx, y: cy + 80 },
+    };
+  }
+  if (zones.length === 3) {
+    return {
+      [zones[0].id]: { x: cx - 120, y: cy + 80 },
+      [zones[1].id]: { x: cx, y: cy - 80 },
+      [zones[2].id]: { x: cx + 120, y: cy + 80 },
+    };
+  }
+  // 4+ zones: arrange in a circle
+  const positions = {};
+  zones.forEach((zone, i) => {
+    const angle = (i / zones.length) * Math.PI * 2 - Math.PI / 2;
+    positions[zone.id] = {
+      x: cx + Math.cos(angle) * radius,
+      y: cy + Math.sin(angle) * radius,
+    };
+  });
+  return positions;
+}
+
+export default function ZoneMap({ zones, heroZones, heroes, enemies, selectedTarget, onSelectTarget }) {
   const size = 420;
+  const positions = computeZonePositions(zones);
 
   return (
     <div className="zone-map-container">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* Draw connections first */}
-        {encounter.zones.map(zone =>
+        {/* Draw connections */}
+        {zones.map(zone =>
           zone.connections.map(connId => {
-            const from = ZONE_POSITIONS[zone.id];
-            const to = ZONE_POSITIONS[connId];
+            const from = positions[zone.id];
+            const to = positions[connId];
             if (!from || !to) return null;
-            // Only draw each line once
             if (zone.id > connId) return null;
             return (
               <line
@@ -50,27 +74,49 @@ export default function ZoneMap({ heroZone, enemies, selectedTarget, onSelectTar
         )}
 
         {/* Draw zones */}
-        {encounter.zones.map(zone => {
-          const pos = ZONE_POSITIONS[zone.id];
+        {zones.map(zone => {
+          const pos = positions[zone.id];
           if (!pos) return null;
 
-          const heroHere = heroZone === zone.id;
-          const enemiesHere = enemies.filter(e => e.zoneId === zone.id && e.hp > 0);
-          const hasOccupant = heroHere || enemiesHere.length > 0;
+          const heroesHere = heroes ? heroes.filter(h => h.hp > 0 && heroZones[h.id] === zone.id) : [];
+          const enemiesHere = enemies ? enemies.filter(e => e.zoneId === zone.id && e.hp > 0) : [];
+          const hasOccupant = heroesHere.length > 0 || enemiesHere.length > 0;
           const activeTags = zone.tags.filter(t => TAG_ICONS[t]);
+
+          const occupants = [];
+          heroesHere.forEach((h, idx) => {
+            const heroIndex = heroes.findIndex(hero => hero.id === h.id);
+            occupants.push({
+              type: 'hero',
+              label: h.name[0],
+              name: h.name,
+              color: HERO_COLORS[heroIndex % HERO_COLORS.length],
+            });
+          });
+          enemiesHere.forEach(e => {
+            const isSelected = e.id === selectedTarget;
+            occupants.push({
+              type: 'enemy',
+              id: e.id,
+              label: e.name[0],
+              name: e.name,
+              color: isSelected ? '#e74c3c' : '#c0392b',
+            });
+          });
+
+          const spacing = 30;
+          const startX = pos.x - ((occupants.length - 1) * spacing) / 2;
 
           return (
             <g key={zone.id}>
-              {/* Zone circle */}
               <circle
                 cx={pos.x} cy={pos.y} r={55}
-                fill={heroHere ? '#3d2b1a' : '#2a1f14'}
+                fill={heroesHere.length > 0 ? '#3d2b1a' : '#2a1f14'}
                 stroke={hasOccupant ? '#d4a574' : '#5c3a1e'}
                 strokeWidth={hasOccupant ? 2.5 : 1.5}
                 opacity={hasOccupant ? 1 : 0.6}
               />
 
-              {/* Zone name */}
               <text
                 x={pos.x} y={pos.y - 38}
                 textAnchor="middle" fill="#d4a574"
@@ -79,7 +125,6 @@ export default function ZoneMap({ heroZone, enemies, selectedTarget, onSelectTar
                 {zone.name}
               </text>
 
-              {/* Tags */}
               <text
                 x={pos.x} y={pos.y - 26}
                 textAnchor="middle" fill="#b8a080"
@@ -88,34 +133,21 @@ export default function ZoneMap({ heroZone, enemies, selectedTarget, onSelectTar
                 {activeTags.map(t => `${TAG_ICONS[t]} ${t}`).join('  ')}
               </text>
 
-              {/* Standees inside zone */}
-              {(() => {
-                const occupants = [];
-                if (heroHere) occupants.push({ type: 'hero', label: 'K', name: gameData.hero.name, color: '#2980b9' });
-                enemiesHere.forEach(e => {
-                  const isSelected = e.id === selectedTarget;
-                  occupants.push({ type: 'enemy', id: e.id, label: e.name[0], name: e.name, color: isSelected ? '#e74c3c' : '#c0392b' });
-                });
-
-                const spacing = 30;
-                const startX = pos.x - ((occupants.length - 1) * spacing) / 2;
-
-                return occupants.map((occ, i) => (
-                  <g
-                    key={occ.type + (occ.id || '')}
-                    onClick={occ.type === 'enemy' ? () => onSelectTarget(occ.id) : undefined}
-                    style={occ.type === 'enemy' ? { cursor: 'pointer' } : {}}
-                  >
-                    <Standee
-                      cx={startX + i * spacing}
-                      cy={pos.y + 6}
-                      label={occ.label}
-                      name={occ.name}
-                      color={occ.color}
-                    />
-                  </g>
-                ));
-              })()}
+              {occupants.map((occ, i) => (
+                <g
+                  key={occ.type + (occ.id || '') + i}
+                  onClick={occ.type === 'enemy' ? () => onSelectTarget(occ.id) : undefined}
+                  style={occ.type === 'enemy' ? { cursor: 'pointer' } : {}}
+                >
+                  <Standee
+                    cx={startX + i * spacing}
+                    cy={pos.y + 6}
+                    label={occ.label}
+                    name={occ.name}
+                    color={occ.color}
+                  />
+                </g>
+              ))}
             </g>
           );
         })}

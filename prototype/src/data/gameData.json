@@ -1,4 +1,322 @@
 {
+  "heroes": [
+    {
+      "id": "ironwall_knight",
+      "name": "Ironwall Knight",
+      "class": "Warrior",
+      "passive": {
+        "name": "Iron Stance",
+        "description": "-1 incoming melee damage"
+      },
+      "stats": { "STR": 3, "DEX": 1, "INT": 0, "CON": 3 },
+      "equipment": [
+        {
+          "id": "iron_sword",
+          "name": "Iron Sword",
+          "type": "weapon",
+          "subtype": "melee",
+          "effect": "+1 to attack roll",
+          "attackBonus": 1
+        },
+        {
+          "id": "wooden_shield",
+          "name": "Wooden Shield",
+          "type": "armor",
+          "effect": "Block: roll d4 to reduce damage",
+          "blockDie": 4,
+          "uses": 1
+        },
+        {
+          "id": "healing_potion",
+          "name": "Healing Potion",
+          "type": "consumable",
+          "effect": "Restore d6 HP",
+          "healDie": 6,
+          "uses": 1
+        }
+      ]
+    },
+    {
+      "id": "silvershade",
+      "name": "Silvershade",
+      "class": "Ranger",
+      "passive": {
+        "name": "Keen Eye",
+        "description": "+1 ranged attack from elevated zones"
+      },
+      "stats": { "STR": 1, "DEX": 3, "INT": 1, "CON": 2 },
+      "equipment": [
+        {
+          "id": "longbow",
+          "name": "Longbow",
+          "type": "weapon",
+          "subtype": "ranged",
+          "effect": "+1 to ranged attack roll",
+          "attackBonus": 1
+        },
+        {
+          "id": "leather_armor",
+          "name": "Leather Armor",
+          "type": "armor",
+          "effect": "Block: roll d4 to reduce damage",
+          "blockDie": 4,
+          "uses": 1
+        },
+        {
+          "id": "healing_herbs",
+          "name": "Healing Herbs",
+          "type": "consumable",
+          "effect": "Restore d6 HP",
+          "healDie": 6,
+          "uses": 1
+        }
+      ]
+    },
+    {
+      "id": "whisper",
+      "name": "Whisper",
+      "class": "Rogue",
+      "passive": {
+        "name": "Shadow Step",
+        "description": "No opportunity attack when retreating"
+      },
+      "stats": { "STR": 1, "DEX": 3, "INT": 2, "CON": 1 },
+      "equipment": [
+        {
+          "id": "twin_daggers",
+          "name": "Twin Daggers",
+          "type": "weapon",
+          "subtype": "melee",
+          "effect": "+1 to attack roll",
+          "attackBonus": 1
+        },
+        {
+          "id": "throwing_knives",
+          "name": "Throwing Knives",
+          "type": "weapon",
+          "subtype": "ranged",
+          "effect": "+1 to ranged attack roll",
+          "attackBonus": 1
+        },
+        {
+          "id": "smoke_pellet",
+          "name": "Smoke Pellet",
+          "type": "consumable",
+          "effect": "Restore d6 HP",
+          "healDie": 6,
+          "uses": 1
+        }
+      ]
+    },
+    {
+      "id": "ember",
+      "name": "Ember",
+      "class": "Mage",
+      "passive": {
+        "name": "Arcane Surge",
+        "description": "On Critical: deal +INT bonus damage"
+      },
+      "stats": { "STR": 0, "DEX": 1, "INT": 3, "CON": 2 },
+      "equipment": [
+        {
+          "id": "fire_bolt",
+          "name": "Fire Bolt",
+          "type": "weapon",
+          "subtype": "ranged",
+          "magic": true,
+          "effect": "+1 to ranged spell attack (INT to damage)",
+          "attackBonus": 1
+        },
+        {
+          "id": "mana_potion",
+          "name": "Mana Potion",
+          "type": "consumable",
+          "effect": "Restore d6 HP",
+          "healDie": 6,
+          "uses": 1
+        }
+      ]
+    }
+  ],
+
+  "environments": [
+    {
+      "id": "dusty_road",
+      "name": "The Dusty Road",
+      "zones": [
+        {
+          "id": "treeline",
+          "name": "Treeline",
+          "tags": ["cover"],
+          "connections": ["road"]
+        },
+        {
+          "id": "road",
+          "name": "Road",
+          "tags": ["open"],
+          "connections": ["treeline", "hillside"]
+        },
+        {
+          "id": "hillside",
+          "name": "Hillside",
+          "tags": ["elevated"],
+          "connections": ["road"]
+        }
+      ],
+      "playerStart": "road"
+    },
+    {
+      "id": "roadside_camp",
+      "name": "The Roadside Camp",
+      "zones": [
+        {
+          "id": "campfire",
+          "name": "Campfire",
+          "tags": [],
+          "connections": ["perimeter"]
+        },
+        {
+          "id": "perimeter",
+          "name": "Perimeter",
+          "tags": ["exposed"],
+          "connections": ["campfire"]
+        }
+      ],
+      "playerStart": "campfire"
+    },
+    {
+      "id": "bandit_hideout",
+      "name": "The Bandit Hideout",
+      "zones": [
+        {
+          "id": "entrance",
+          "name": "Entrance",
+          "tags": ["open"],
+          "connections": ["main_chamber"]
+        },
+        {
+          "id": "main_chamber",
+          "name": "Main Chamber",
+          "tags": ["chaotic"],
+          "connections": ["entrance", "ledge", "supply_alcove"]
+        },
+        {
+          "id": "ledge",
+          "name": "Ledge",
+          "tags": ["elevated"],
+          "connections": ["main_chamber"]
+        },
+        {
+          "id": "supply_alcove",
+          "name": "Supply Alcove",
+          "tags": ["cover", "shadowed"],
+          "connections": ["main_chamber"]
+        }
+      ],
+      "playerStart": "entrance"
+    }
+  ],
+
+  "narratives": [
+    {
+      "id": "road_ambush",
+      "title": "Ambush on the Road",
+      "text": "As you round a bend, a rough-looking figure steps out from the treeline, blade drawn. Bandits have been raiding travelers along this stretch for weeks.",
+      "sceneType": "combat"
+    },
+    {
+      "id": "roadside_rest",
+      "title": "A Moment's Respite",
+      "text": "You find a sheltered campsite off the road. A cold fire pit, some scattered supplies — someone camped here recently. Time to rest and search the area.",
+      "sceneType": "rest_and_check"
+    },
+    {
+      "id": "hideout_assault",
+      "title": "Into the Den",
+      "text": "Following the trail from the road, you discover the bandits' hideout — a cave entrance hidden behind overgrown brush. Multiple voices echo from within. This won't be easy.",
+      "sceneType": "combat"
+    }
+  ],
+
+  "scenes": [
+    {
+      "id": "scene_1",
+      "title": "Scene 1: The Dusty Road",
+      "environmentId": "dusty_road",
+      "narrativeId": "road_ambush",
+      "type": "combat",
+      "enemies": [
+        {
+          "id": "bandit_thug",
+          "name": "Bandit Thug",
+          "behavior": "aggressive",
+          "startZone": "treeline",
+          "stats": { "maxHp": 8, "STR": 1, "DEX": 1 }
+        }
+      ]
+    },
+    {
+      "id": "scene_2",
+      "title": "Scene 2: The Roadside Camp",
+      "environmentId": "roadside_camp",
+      "narrativeId": "roadside_rest",
+      "type": "rest_and_check",
+      "checkStat": "INT",
+      "checkDC": 10,
+      "checkDescription": "Search the campsite for useful supplies",
+      "checkSuccess": "You find a stash hidden under a loose stone — a Smoke Bomb, still sealed.",
+      "checkFailure": "You search thoroughly but find nothing of value. No matter — rest was reward enough.",
+      "checkReward": {
+        "id": "smoke_bomb",
+        "name": "Smoke Bomb",
+        "type": "consumable",
+        "effect": "All enemies get -2 to attack rolls for 1 turn",
+        "uses": 1
+      }
+    },
+    {
+      "id": "scene_3",
+      "title": "Scene 3: The Bandit Hideout",
+      "environmentId": "bandit_hideout",
+      "narrativeId": "hideout_assault",
+      "type": "combat",
+      "enemies": [
+        {
+          "id": "bandit_fighter_1",
+          "name": "Bandit Fighter",
+          "behavior": "aggressive",
+          "startZone": "main_chamber",
+          "stats": { "maxHp": 10, "STR": 2, "DEX": 1 }
+        },
+        {
+          "id": "bandit_fighter_2",
+          "name": "Bandit Brawler",
+          "behavior": "aggressive",
+          "startZone": "supply_alcove",
+          "stats": { "maxHp": 9, "STR": 2, "DEX": 1 }
+        },
+        {
+          "id": "bandit_marksman",
+          "name": "Bandit Marksman",
+          "behavior": "ranged",
+          "startZone": "ledge",
+          "stats": { "maxHp": 6, "STR": 1, "DEX": 1 }
+        }
+      ]
+    }
+  ],
+
+  "bonusItems": {
+    "smoke_bomb": {
+      "id": "smoke_bomb",
+      "name": "Smoke Bomb",
+      "type": "consumable",
+      "effect": "All enemies get -2 to next attack",
+      "smokeBomb": true,
+      "uses": 1
+    }
+  },
+
   "encounter": {
     "name": "Tavern Brawl",
     "zones": [
@@ -34,14 +352,14 @@
         "name": "Bandit Brute",
         "behavior": "aggressive",
         "startZone": "bar",
-        "stats": { "maxHp": 10, "strength": 2, "agility": 1 }
+        "stats": { "maxHp": 10, "STR": 2, "DEX": 1 }
       },
       {
         "id": "bandit_archer",
         "name": "Bandit Archer",
         "behavior": "ranged",
         "startZone": "balcony",
-        "stats": { "maxHp": 7, "strength": 1, "agility": 3 }
+        "stats": { "maxHp": 7, "STR": 1, "DEX": 3 }
       }
     ]
   },
@@ -54,10 +372,11 @@
       "description": "-1 incoming melee damage"
     },
     "stats": {
-      "maxHp": 20,
-      "strength": 3,
-      "agility": 1,
-      "wits": 1
+      "maxHp": 14,
+      "STR": 3,
+      "DEX": 1,
+      "INT": 0,
+      "CON": 3
     }
   },
 
