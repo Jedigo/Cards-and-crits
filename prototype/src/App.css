@@ -1,6 +1,6 @@
 /* === Game Table === */
 .game-table {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
   font-family: 'Georgia', serif;
@@ -32,9 +32,164 @@
   gap: 12px;
 }
 
-/* === Zone Map === */
+/* === Zone Map 2.5D === */
 .zone-map-container {
   flex-shrink: 0;
+  perspective: 900px;
+  perspective-origin: 50% 35%;
+  padding: 40px 20px 80px;
+}
+
+.zone-map-surface {
+  position: relative;
+  width: 580px;
+  height: 440px;
+  transform: rotateX(58deg) rotateZ(-45deg);
+  transform-style: preserve-3d;
+  background:
+    radial-gradient(ellipse at center, #3d2b1a 0%, #2a1f14 70%, #1a1510 100%);
+  border-radius: 12px;
+  border: 2px solid #5c3a1e;
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Connection paths between zones */
+.zone-connection {
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    #8b7355 0, #8b7355 8px,
+    transparent 8px, transparent 14px
+  );
+  opacity: 0.5;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+/* Zone tiles */
+.zone-tile {
+  position: absolute;
+  border: 2px solid;
+  border-radius: 6px;
+  border-bottom-width: 5px;
+  padding: 4px 8px;
+  transform-style: preserve-3d;
+  transform: translateZ(3px);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.zone-tile.occupied {
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.6),
+    0 0 16px rgba(212, 165, 116, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.zone-tile-name {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #d4a574;
+  text-align: center;
+  font-family: 'Georgia', serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  line-height: 1.2;
+}
+
+.zone-tile-tags {
+  font-size: 0.65rem;
+  color: #b8a080;
+  text-align: center;
+  font-family: 'Georgia', serif;
+  margin-top: 2px;
+}
+
+/* Standee group — counter-rotated to stand upright */
+.zone-standees {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 4px;
+  transform: rotateX(-58deg) rotateZ(45deg) translateZ(24px);
+  transform-origin: center bottom;
+}
+
+/* Individual standee figure */
+.standee {
+  width: 30px;
+  height: 38px;
+  border-radius: 4px 4px 2px 2px;
+  border: 2px solid #111;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  position: relative;
+  box-shadow:
+    2px 4px 8px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.standee.enemy {
+  cursor: pointer;
+}
+
+.standee.enemy:hover {
+  border-color: #f39c12;
+  box-shadow:
+    0 0 12px rgba(243, 156, 18, 0.4),
+    2px 4px 8px rgba(0, 0, 0, 0.6);
+}
+
+.standee.selected {
+  border-color: #f1c40f;
+  box-shadow:
+    0 0 14px rgba(231, 76, 60, 0.5),
+    0 0 28px rgba(231, 76, 60, 0.2),
+    2px 4px 8px rgba(0, 0, 0, 0.6);
+}
+
+.standee-label {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #fff;
+  font-family: 'Georgia', serif;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.standee-name {
+  font-size: 0.5rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'Georgia', serif;
+  white-space: nowrap;
+  position: absolute;
+  bottom: -14px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+
+.standee-base {
+  position: absolute;
+  bottom: -5px;
+  left: -2px;
+  width: 34px;
+  height: 7px;
+  background: linear-gradient(to bottom, #8b7355, #6a5a40);
+  border-radius: 2px;
+  border: 1px solid #5c3a1e;
+  z-index: -1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* === Target Selector === */

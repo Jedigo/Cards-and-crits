@@ -461,6 +461,132 @@ export function resolveSkillEffect(eq, hero, scene, action, log) {
       break;
     }
 
+    // --- SHIELD BASH: melee attack + push enemy to connected zone ---
+    case 'shield_bash': {
+      const targetId = action.targetId || scene.selectedTarget;
+      const enemy = scene.enemies.find(e => e.id === targetId);
+      if (!enemy || enemy.hp <= 0 || enemy.zoneId !== heroZone) break;
+
+      const weapon = hero.equipment.find(e => e.type === 'weapon' && e.subtype === 'melee');
+      const weaponDmgBonus = weapon ? weapon.damageBonus : 0;
+
+      const result = resolveAttack({
+        STR: hero.stats.STR || 0,
+        DEX: hero.stats.DEX || 0,
+        INT: hero.stats.INT || 0,
+        weaponBonus: weaponDmgBonus,
+        isRanged: false,
+        attackerZone: heroZone,
+        defenderZone: enemy.zoneId,
+        zones,
+      });
+
+      let damage = result.damage;
+      ({ damage, log } = applyOffensivePassive(hero, result, damage, log));
+
+      const newEnemyHp = Math.max(0, enemy.hp - damage);
+      log = addLog(log, `${hero.name} uses Shield Bash on ${enemy.name}! ${formatRoll(result)}`, 'attack');
+
+      let newEnemies = scene.enemies.map(e => e.id === targetId ? { ...e, hp: newEnemyHp } : e);
+
+      // Push enemy to a random connected zone if alive
+      if (newEnemyHp > 0) {
+        const enemyZoneData = getZone(zones, enemy.zoneId);
+        const pushOptions = enemyZoneData.connections.filter(c => c !== heroZone);
+        const pushTo = pushOptions.length > 0
+          ? pushOptions[Math.floor(Math.random() * pushOptions.length)]
+          : enemyZoneData.connections[0];
+        if (pushTo) {
+          newEnemies = newEnemies.map(e => e.id === targetId ? { ...e, zoneId: pushTo } : e);
+          log = addLog(log, `${enemy.name} is knocked back to the ${getZone(zones, pushTo).name}!`, 'move');
+        }
+      }
+
+      if (newEnemyHp <= 0) log = addLog(log, `${enemy.name} is defeated!`, 'narrative');
+      if (newEnemies.every(e => e.hp <= 0)) log = addLog(log, `All enemies defeated!`, 'narrative');
+
+      dice = makeDiceState(result);
+      updatedScene = {
+        ...updatedScene,
+        enemies: newEnemies,
+        combatPhase: newEnemies.every(e => e.hp <= 0) ? 'victory' : scene.combatPhase,
+      };
+      break;
+    }
+
+    // --- SNEAK ATTACK: DEX-based attack with +3 flat bonus damage ---
+    case 'sneak_attack': {
+      const targetId = action.targetId || scene.selectedTarget;
+      const enemy = scene.enemies.find(e => e.id === targetId);
+      if (!enemy || enemy.hp <= 0 || enemy.zoneId !== heroZone) break;
+
+      // Use best available weapon (melee preferred in same zone)
+      const weapon = hero.equipment.find(e => e.type === 'weapon' && e.subtype === 'melee')
+        || hero.equipment.find(e => e.type === 'weapon' && e.subtype === 'ranged');
+      const weaponDmgBonus = weapon ? weapon.damageBonus : 0;
+
+      const result = resolveAttack({
+        STR: hero.stats.DEX || 0, // DEX for accuracy (finesse attack)
+        DEX: hero.stats.DEX || 0,
+        INT: hero.stats.INT || 0,
+        weaponBonus: weaponDmgBonus,
+        isRanged: false,
+        attackerZone: heroZone,
+        defenderZone: enemy.zoneId,
+        zones,
+      });
+
+      let damage = result.damage;
+      // +3 flat bonus on any hit
+      if (damage > 0) {
+        damage += 3;
+        log = addLog(log, `Sneak Attack! +3 bonus damage!`, 'passive');
+      }
+      ({ damage, log } = applyOffensivePassive(hero, result, damage, log));
+
+      const newEnemyHp = Math.max(0, enemy.hp - damage);
+      log = addLog(log, `${hero.name} uses Sneak Attack on ${enemy.name}! ${formatRoll(result)}`, 'attack');
+
+      const newEnemies = scene.enemies.map(e => e.id === targetId ? { ...e, hp: newEnemyHp } : e);
+      if (newEnemyHp <= 0) log = addLog(log, `${enemy.name} is defeated!`, 'narrative');
+      if (newEnemies.every(e => e.hp <= 0)) log = addLog(log, `All enemies defeated!`, 'narrative');
+
+      dice = makeDiceState(result);
+      updatedScene = {
+        ...updatedScene,
+        enemies: newEnemies,
+        combatPhase: newEnemies.every(e => e.hp <= 0) ? 'victory' : scene.combatPhase,
+      };
+      break;
+    }
+
+    // --- HEALING TOUCH: heal lowest-HP ally for d6 ---
+    case 'healing_touch': {
+      const livingHeroes = scene.heroes.filter(h => h.hp > 0 && h.hp < h.stats.maxHp);
+      if (livingHeroes.length === 0) {
+        log = addLog(log, `${hero.name} tries Healing Touch — but everyone is at full health!`, 'info');
+        break;
+      }
+      const target = livingHeroes.sort((a, b) => a.hp - b.hp)[0];
+      const healRoll = rollDie(6);
+      const actual = Math.min(healRoll, target.stats.maxHp - target.hp);
+      const updatedHero = { ...target, hp: target.hp + actual };
+      updatedScene = {
+        ...updatedScene,
+        heroes: scene.heroes.map(h => h.id === target.id ? updatedHero : h),
+      };
+      dice = { results: [], bonusDice: [{ sides: 6, value: healRoll, reason: 'healing' }], total: healRoll, tier: 'Healing Touch', damage: 0 };
+      log = addLog(log, `${hero.name} casts Healing Touch on ${target.name} — heals ${actual} HP! (d6→${healRoll})`, 'heal');
+      break;
+    }
+
+    // --- TAUNT: all enemies must target you next turn ---
+    case 'taunt': {
+      updatedScene = { ...updatedScene, tauntHeroId: hero.id };
+      log = addLog(log, `${hero.name} taunts all enemies! They must attack ${hero.name} next turn!`, 'passive');
+      break;
+    }
+
     // --- FIRE FLASK: 3 flat damage to all enemies in target zone ---
     case 'fire_flask': {
       const targetZone = action.targetZone;

@@ -1,6 +1,6 @@
 # RPG Card Game Prototype
 
-Pack-based adventure card RPG with dice combat and a tabletop aesthetic. See `Game_Design_Document_v0.7.md` for the full GDD.
+Pack-based adventure card RPG with dice combat and a tabletop aesthetic. See `Game_Design_Document_v0.8.md` for the full GDD.
 
 ## Project Structure
 
@@ -13,7 +13,7 @@ prototype/          — React + Vite Phase 2+ combat + run prototype
       combatHelpers.js       — Extracted pure combat functions (attack resolution, dice, zone helpers, passives, skill effects)
       gameReducer.js         — Phase 1 legacy reducer (unused, kept as reference)
     components/
-      RangeBandDisc.jsx      — Zone map SVG (dynamic layout, multi-hero standees)
+      RangeBandDisc.jsx      — 2.5D isometric zone map (CSS perspective, terrain-textured tiles, counter-rotated standees)
       ActionBar.jsx           — Player actions (move, retreat, attack, skills, equipment, end turn) — zone-targeting skill UI
       DiceRoller.jsx          — Dice tray display (2d8 + bonus dice + exploding crits + d20 for skill checks)
       HealthBar.jsx           — HP bars with passive display
@@ -44,7 +44,7 @@ cd prototype && npx vite build # Production build
 
 ### Dice System (2d8 Tier-Based with Exploding Crits)
 - 2d8 attack roll + stat modifier (STR melee, DEX ranged, INT magic) for accuracy
-- Damage tiers: Miss 2-6, Graze 7-10, Hit 11-13, Strong Hit 14-15, Critical 16+
+- Damage tiers: Miss 2-6 (0), Graze 7-10 (2+w×1), Hit 11-13 (3+w×1), Strong Hit 14-15 (4+w×2), Critical 16+ (5+w×2)
 - **Stats add to roll (accuracy), weapons add to damage (via damageBonus × weaponMultiplier)**
 - Weapon scaling: Graze/Hit = weapon×1, Strong Hit/Crit = weapon×2
 - Exploding crits: natural 16 (double 8s) adds bonus d8 damage, chains on 8
@@ -56,15 +56,17 @@ cd prototype && npx vite build # Production build
 
 ### Hero Party & Stats
 - 2–3 heroes per run, each with 5 loadout slots (1 weapon, 1 armor, 3 flex)
-- 4 stats: STR, DEX, INT, CON (range 0–3)
-- 6 classes: Warrior, Ranger, Rogue, Mage, Healer/Cleric, Tinkerer/Artificer
+- 5 stats: STR, DEX, INT, CON, WITS (range 0–3, budget 9 per hero)
+- WITS: primary stat for all skill checks, future attack stat for divine/nature/martial classes (Cleric, Druid, Monk, Bard)
+- Stat budget is fixed at 9 across all rarities — rarity differentiates through passives, not raw stats
+- 6+ classes: Warrior, Ranger, Rogue, Mage, Healer/Cleric, Tinkerer/Artificer (more planned)
 - **Weapon specialization**: heroes are specialists, not generalists (Warrior = melee only, Ranger = ranged only, Mage = spells only, Rogue = both). Gap-filling comes from skill/spell cards in flex slots, not redundant weapons
 - Equipment is unrestricted — any class can use any card
 - Figure passives define identity; active skills come from card packs
 
 ### Skill & Equipment Cards
-- 9 starter skill cards in shared pool: Charge, Power Strike, Aimed Shot, Arcane Blast, Disengage, Grappling Hook, Bandage, War Cry, Fire Flask
-- Consumables are separate from skills (own slot): Healing Potion, Smoke Bomb
+- 13 starter skill cards in shared pool: Charge, Power Strike, Aimed Shot, Arcane Blast, Disengage, Grappling Hook, Bandage, War Cry, Fire Flask, Shield Bash, Sneak Attack, Healing Touch, Taunt
+- Consumables are separate from skills (own slot): Healing Potion, Smoke Bomb, Throwing Axe
 - Skills use the `USE_EQUIPMENT` dispatch with `type: "skill"` and `skillType` field
 - Zone-targeting skills use pending skill UI state in ActionBar
 - Armor is passive `damageReduction`, not an active ability
@@ -94,20 +96,6 @@ React prototype validates mechanics → rebuild in Godot for Steam release. No p
 
 ## Session Log
 
-### 2026-03-29
-- Scaffolded React + Vite prototype (Phase 1: Dice & Combat)
-- Iterated through 4 zone system designs: 4-band concentric rings → relative range → Here/There → graph-based named locations. Settled on **graph-based zones** inspired by Dungeon Craft's "Ultimate Dungeon Terrain" / Fate RPG / ICRPG zones
-- Zones are connected locations (e.g., Tavern: Balcony, Main Floor, Bar, Back Room) with tag-based modifiers (elevated, cover, shadowed, etc.)
-- Movement costs entire turn (1 action per turn) — decided to keep flexible (can double-move or double-attack)
-- Added **engagement rules**: enemies in your zone lock you down, retreating provokes opportunity attacks. Fixes infinite kiting by ranged enemies
-- Reworked **archer AI**: retreats when engaged (costs turn + provokes attack), fights with penalty if cornered, shoots from adjacent zones, repositions if too far
-- Replaced hit-count dice system with **2d6 tier-based damage** (Miss/Graze/Hit/Strong Hit/Critical) — no separate damage roll
-- Other dice types (d4, d6, d8, d10, d12, d20) reserved for special moments: healing potions (d6), shield blocks (d4), shadowed crit bonus (d8)
-- Built multi-enemy encounter (Bandit Brute + Bandit Archer) with target selection
-- Created CLAUDE.md and `/close-session` custom command
-- Set up memory system with project overview
-- **Next steps**: Continue playtesting combat feel, consider zone reveal/fog-of-war (Phase 2), balance damage tiers and enemy stats
-
 ### 2026-03-30
 - GDD updated from v0.3 → v0.6: added cooldown system, scene-based run structure, hero parties (2–3 per run), 4-stat system (STR/DEX/INT/CON), 6 classes, figure passives, campaign packs, pack structure (5-card with pity system), non-combat scenes, and 14 open design questions
 - **Next steps**: Phase 2 — Run Structure (draw pile, card-driven adventure flow, narrative/choice scenes, tier tracker, win/lose conditions)
@@ -130,3 +118,11 @@ React prototype validates mechanics → rebuild in Godot for Steam release. No p
 - **Passive Armor + Enemy Rebalance**: Armor is passive DR (not active block). All enemies get damageBonus: 1. Knight passive changed from Iron Stance (self-DR) to Hold the Line (enemies engaged with Knight get -1 to attack allies). Weapon specialization enforced (no ranged without ranged weapon)
 - **GDD v0.8**: New version with 2d8 system, stat/damage flip, exploding crits, future features
 - **Next steps**: Gear durability/repair (Tales of Arydia style), crafting consumables, more enemy behaviors, Parry skill (deferred — needs status tracking), second run environment
+
+### 2026-04-01
+- **Expanded starter box**: 4 new skills (Shield Bash, Sneak Attack, Healing Touch, Taunt) + 1 new consumable (Throwing Axe). Pool now 13 skills + 3 consumables
+- **WITS stat added** as 5th stat. Stat budget formalized at 9 points per hero, all rarities. Hero stats rebalanced: Mage is squishiest (CON 1, 10HP), Rogue gets CON 2 (12HP). Skill checks now use WITS
+- **Damage tiers buffed +1 across the board** (Graze 1→2, Hit 2→3, etc.) after playtesting showed grindy combat
+- **2.5D isometric zone map**: Replaced SVG circles with CSS perspective-tilted surface (rotateX 58° + rotateZ -45°), rectangular tiles with CSS terrain textures, counter-rotated standee figures. Inspired by Card Hunter's tabletop aesthetic
+- **Sneak Attack uses DEX** (not STR) after playtesting showed STR 1 Rogue whiffing. Throwing Axe uses attack roll (DEX-based) for realism
+- **Next steps**: Tune 2.5D map visual, gear durability/repair, more enemy behaviors, status effect system, second run environment

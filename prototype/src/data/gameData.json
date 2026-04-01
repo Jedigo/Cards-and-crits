@@ -8,7 +8,7 @@
         "name": "Hold the Line",
         "description": "Enemies engaged with you get -1 to attack allies"
       },
-      "stats": { "STR": 3, "DEX": 1, "INT": 0, "CON": 3 },
+      "stats": { "STR": 3, "DEX": 1, "INT": 0, "CON": 3, "WITS": 2 },
       "equipment": [
         {
           "id": "iron_sword",
@@ -35,7 +35,7 @@
         "name": "Keen Eye",
         "description": "+1 ranged attack from elevated zones"
       },
-      "stats": { "STR": 1, "DEX": 3, "INT": 1, "CON": 2 },
+      "stats": { "STR": 1, "DEX": 3, "INT": 1, "CON": 2, "WITS": 2 },
       "equipment": [
         {
           "id": "longbow",
@@ -62,7 +62,7 @@
         "name": "Shadow Step",
         "description": "No opportunity attack when retreating"
       },
-      "stats": { "STR": 1, "DEX": 3, "INT": 2, "CON": 1 },
+      "stats": { "STR": 1, "DEX": 3, "INT": 1, "CON": 2, "WITS": 2 },
       "equipment": [
         {
           "id": "twin_daggers",
@@ -90,7 +90,7 @@
         "name": "Arcane Surge",
         "description": "On Critical: deal +INT bonus damage"
       },
-      "stats": { "STR": 0, "DEX": 1, "INT": 3, "CON": 2 },
+      "stats": { "STR": 0, "DEX": 2, "INT": 3, "CON": 1, "WITS": 3 },
       "equipment": [
         {
           "id": "fire_bolt",
@@ -193,6 +193,44 @@
       "effect": "Deal 3 damage to all enemies in target zone",
       "range": "connected",
       "uses": 1
+    },
+    {
+      "id": "shield_bash",
+      "name": "Shield Bash",
+      "type": "skill",
+      "skillType": "shield_bash",
+      "targeting": "enemy",
+      "effect": "Melee attack that pushes enemy to connected zone",
+      "range": "melee",
+      "uses": 1
+    },
+    {
+      "id": "sneak_attack",
+      "name": "Sneak Attack",
+      "type": "skill",
+      "skillType": "sneak_attack",
+      "targeting": "enemy",
+      "effect": "DEX-based melee attack with +3 bonus damage",
+      "range": "melee",
+      "uses": 1
+    },
+    {
+      "id": "healing_touch",
+      "name": "Healing Touch",
+      "type": "skill",
+      "skillType": "healing_touch",
+      "targeting": "none",
+      "effect": "Heal lowest-HP ally for d6 HP",
+      "uses": 2
+    },
+    {
+      "id": "taunt",
+      "name": "Taunt",
+      "type": "skill",
+      "skillType": "taunt",
+      "targeting": "none",
+      "effect": "All enemies must target you next turn",
+      "uses": 1
     }
   ],
 
@@ -211,6 +249,15 @@
       "type": "consumable",
       "effect": "All enemies get -2 to next attack",
       "smokeBomb": true,
+      "uses": 1
+    },
+    {
+      "id": "throwing_axe",
+      "name": "Throwing Axe",
+      "type": "consumable",
+      "effect": "Deal 3 damage to selected enemy (same or connected zone)",
+      "throwingAxe": true,
+      "throwDamage": 3,
       "uses": 1
     }
   ],
@@ -337,7 +384,7 @@
       "environmentId": "roadside_camp",
       "narrativeId": "roadside_rest",
       "type": "rest_and_check",
-      "checkStat": "INT",
+      "checkStat": "WITS",
       "checkDC": 10,
       "checkDescription": "Search the campsite for useful supplies",
       "checkSuccess": "You find a stash hidden under a loose stone — a Smoke Bomb, still sealed.",
@@ -452,7 +499,8 @@
       "STR": 3,
       "DEX": 1,
       "INT": 0,
-      "CON": 3
+      "CON": 3,
+      "WITS": 2
     }
   },
 
@@ -503,9 +551,9 @@
 
   "damageTiers": [
     { "min": 2,  "max": 6,  "label": "Miss",       "damage": 0, "weaponMultiplier": 0 },
-    { "min": 7,  "max": 10, "label": "Graze",      "damage": 1, "weaponMultiplier": 1 },
-    { "min": 11, "max": 13, "label": "Hit",         "damage": 2, "weaponMultiplier": 1 },
-    { "min": 14, "max": 15, "label": "Strong Hit",  "damage": 3, "weaponMultiplier": 2 },
-    { "min": 16, "max": 99, "label": "Critical",    "damage": 4, "weaponMultiplier": 2 }
+    { "min": 7,  "max": 10, "label": "Graze",      "damage": 2, "weaponMultiplier": 1 },
+    { "min": 11, "max": 13, "label": "Hit",         "damage": 3, "weaponMultiplier": 1 },
+    { "min": 14, "max": 15, "label": "Strong Hit",  "damage": 4, "weaponMultiplier": 2 },
+    { "min": 16, "max": 99, "label": "Critical",    "damage": 5, "weaponMultiplier": 2 }
   ]
 }

@@ -85,6 +85,7 @@ function initCombatScene(sceneData, party, partyInventory, log) {
     dice: { results: [], bonusDice: [], total: 0, tier: '', damage: 0 },
     smokeBombActive: false,
     warCryActive: false,
+    tauntHeroId: null,
   };
 }
 
@@ -127,14 +128,24 @@ function resolveEnemyTurns(scene, log) {
     if (enemy.hp <= 0) return enemy;
     if (livingHeroes.every(h => h.hp <= 0)) return enemy;
 
+    // Taunt override: if a hero taunted, enemies must target them if reachable
+    const tauntHero = scene.tauntHeroId
+      ? livingHeroes.find(h => h.id === scene.tauntHeroId && h.hp > 0)
+      : null;
+
     // Find nearest hero target: same zone > connected zone, prefer lowest HP
     const sameZoneHeroes = livingHeroes.filter(h => h.hp > 0 && heroZones[h.id] === enemy.zoneId);
     const connectedHeroes = livingHeroes.filter(h =>
       h.hp > 0 && heroZones[h.id] !== enemy.zoneId && isConnected(zones, enemy.zoneId, heroZones[h.id])
     );
 
-    const targetHero = sameZoneHeroes.sort((a, b) => a.hp - b.hp)[0]
-      || connectedHeroes.sort((a, b) => a.hp - b.hp)[0];
+    let targetHero;
+    if (tauntHero && (heroZones[tauntHero.id] === enemy.zoneId || isConnected(zones, enemy.zoneId, heroZones[tauntHero.id]))) {
+      targetHero = tauntHero;
+    } else {
+      targetHero = sameZoneHeroes.sort((a, b) => a.hp - b.hp)[0]
+        || connectedHeroes.sort((a, b) => a.hp - b.hp)[0];
+    }
 
     if (!targetHero) {
       // No reachable hero — try to move closer
@@ -389,6 +400,7 @@ function resolveEnemyTurns(scene, log) {
     dice: lastDiceState,
     smokeBombActive: false, // smoke bomb lasts 1 enemy round
     warCryActive: false, // war cry lasts 1 round
+    tauntHeroId: null, // taunt lasts 1 enemy round
   };
   updatedScene.selectedTarget = ensureValidTarget(updatedScene);
 
@@ -712,6 +724,56 @@ export function runReducer(state, action) {
         updatedHero = { ...hero, equipment: newEquipment };
         const updatedHeroes = scene.heroes.map(h => h.id === hero.id ? updatedHero : h);
         const newScene = { ...scene, heroes: updatedHeroes, smokeBombActive: true, dice: { results: [], bonusDice: [], total: 0, tier: '', damage: 0 } };
+        return advanceAfterAction({ ...state, scene: newScene, log });
+      }
+
+      // --- Throwing Axe: DEX-based ranged attack roll ---
+      if (eq.throwingAxe) {
+        const heroZone = scene.heroZones[hero.id];
+        const zones = scene.environment.zones;
+        const targetId = scene.selectedTarget;
+        const enemy = scene.enemies.find(e => e.id === targetId && e.hp > 0);
+        if (!enemy) {
+          return { ...state, log: addLog(log, `No valid target selected!`, 'warning') };
+        }
+        const sameZone = enemy.zoneId === heroZone;
+        const connected = isConnected(zones, heroZone, enemy.zoneId);
+        if (!sameZone && !connected) {
+          return { ...state, log: addLog(log, `${enemy.name} is out of range!`, 'warning') };
+        }
+
+        const result = resolveAttack({
+          STR: hero.stats.STR || 0,
+          DEX: hero.stats.DEX || 0,
+          INT: hero.stats.INT || 0,
+          weaponBonus: eq.throwDamage || 3,
+          isRanged: !sameZone,
+          attackerZone: heroZone,
+          defenderZone: enemy.zoneId,
+          zones,
+        });
+
+        let damage = result.damage;
+        const newEnemyHp = Math.max(0, enemy.hp - damage);
+        log = addLog(log, `${hero.name} hurls a Throwing Axe at ${enemy.name}! ${formatRoll(result)}`, 'attack');
+        const newEnemies = scene.enemies.map(e => e.id === targetId ? { ...e, hp: newEnemyHp } : e);
+        if (newEnemyHp <= 0) log = addLog(log, `${enemy.name} is defeated!`, 'narrative');
+        if (newEnemies.every(e => e.hp <= 0)) log = addLog(log, `All enemies defeated!`, 'narrative');
+
+        const newEquipment = [...hero.equipment];
+        newEquipment[eqIndex] = { ...eq, usesLeft: eq.usesLeft - 1 };
+        updatedHero = { ...hero, equipment: newEquipment };
+        const updatedHeroes = scene.heroes.map(h => h.id === hero.id ? updatedHero : h);
+        const newScene = {
+          ...scene,
+          heroes: updatedHeroes,
+          enemies: newEnemies,
+          combatPhase: newEnemies.every(e => e.hp <= 0) ? 'victory' : scene.combatPhase,
+          dice: makeDiceState(result),
+        };
+        if (newScene.combatPhase === 'victory') {
+          return { ...state, scene: newScene, log };
+        }
         return advanceAfterAction({ ...state, scene: newScene, log });
       }
 

@@ -82,6 +82,12 @@ export default function ActionBar({ scene, dispatch }) {
       if (eq.range === 'melee' && enemy.zoneId !== heroZone) return false;
       if (eq.range === 'ranged' && (enemy.zoneId === heroZone || !checkConnected(zones, heroZone, enemy.zoneId))) return false;
     }
+    // Throwing axe needs a valid target in same or connected zone
+    if (eq.throwingAxe) {
+      const enemy = enemies.find(e => e.id === scene.selectedTarget && e.hp > 0);
+      if (!enemy) return false;
+      if (enemy.zoneId !== heroZone && !checkConnected(zones, heroZone, enemy.zoneId)) return false;
+    }
     return true;
   }
 

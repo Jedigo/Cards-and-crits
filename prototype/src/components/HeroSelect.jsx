@@ -40,6 +40,7 @@ export default function HeroSelect({ party, dispatch }) {
                   <span>DEX {hero.stats.DEX}</span>
                   <span>INT {hero.stats.INT}</span>
                   <span>CON {hero.stats.CON}</span>
+                  <span>WITS {hero.stats.WITS}</span>
                 </div>
                 <div className="hero-card-hp">HP: {maxHp}</div>
                 <div className="hero-card-passive">
