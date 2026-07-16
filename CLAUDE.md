@@ -5,6 +5,20 @@ Pack-based adventure card RPG with dice combat and a tabletop aesthetic. See `Ga
 ## Project Structure
 
 ```
+godot/              — Godot 4.7 production project (3D miniatures on a tabletop board)
+  project.godot              — Godot 4.7, Forward+ renderer
+  data/gameData.json         — Symlink to prototype's gameData.json (single source of truth)
+  autoload/game_data.gd      — GameData singleton: loads/queries the shared JSON
+  scenes/main.tscn           — Entry scene (everything else built procedurally in script)
+  scripts/
+    main.gd                  — Tabletop setup (lighting, table, HUD), scene switching (keys 1-3),
+                               click-to-select raycast, BOARD_SCREENSHOT env debug hook
+    battle_board.gd          — Builds zone tiles/connections/minis from a gameData scene entry
+    mini.gd                  — Miniature: auto-loads assets/models/<id>.glb (Tripo drop folder)
+                               or placeholder capsule; normalizes scale/origin; base + label + ring
+    orbit_camera.gd          — Orbit rig (RMB drag, wheel zoom, Q/E rotate, R reset)
+  assets/models/             — Drop Tripo GLB exports here, named <hero_or_enemy_id>.glb
+                               TRIPO_PROMPTS.md = prompt library + locked art style template
 prototype/          — React + Vite Phase 2+ combat + run prototype
   src/
     data/gameData.json       — All game data (heroes, environments, scenes, enemies, skill/consumable pools, dice tiers, zone tags)
@@ -31,6 +45,9 @@ prototype/          — React + Vite Phase 2+ combat + run prototype
 ```bash
 cd prototype && npm run dev    # Start dev server (localhost:5173)
 cd prototype && npx vite build # Production build
+cd godot && ~/.local/bin/godot -e   # Open Godot editor (4.7.1 installed at ~/.local/bin/godot)
+cd godot && ~/.local/bin/godot      # Run the 3D board directly
+# Debug screenshot: BOARD_SCREENSHOT=/path.png BOARD_SCENE=3 ~/.local/bin/godot --quit-after 45
 ```
 
 ## Key Design Decisions
@@ -126,3 +143,13 @@ React prototype validates mechanics → rebuild in Godot for Steam release. No p
 - **2.5D isometric zone map**: Replaced SVG circles with CSS perspective-tilted surface (rotateX 58° + rotateZ -45°), rectangular tiles with CSS terrain textures, counter-rotated standee figures. Inspired by Card Hunter's tabletop aesthetic
 - **Sneak Attack uses DEX** (not STR) after playtesting showed STR 1 Rogue whiffing. Throwing Axe uses attack roll (DEX-based) for realism
 - **Next steps**: Tune 2.5D map visual, gear durability/repair, more enemy behaviors, status effect system, second run environment
+
+### 2026-07-15
+- **Godot production project started** (`godot/`) — decided to skip polishing the temporary CSS 2.5D map and begin the real 3D build, motivated by user's Tripo 3D AI Studio skills for making miniatures. Godot 4.7.1 installed at `~/.local/bin/godot`
+- **3D tabletop board**: procedural board built from `gameData.json` (symlinked from prototype — single source of truth). Zone tiles with tag-based colors + elevation, connection paths, name/tag labels, warm tabletop lighting, orbit camera, click-to-select enemies with highlight ring, HUD, scene switching (keys 1–3)
+- **Tripo GLB drop-in pipeline**: any `assets/models/<id>.glb` auto-replaces that unit's placeholder capsule; models are auto-normalized (scale to 1.3u height, grounded, centered) since AI exports vary in scale/origin. Verified end-to-end with a generated mis-scaled test GLB. Numbered enemy ids share a model (`bandit_fighter_1` → `bandit_fighter.glb`)
+- **First real Tripo minis generated and on the board**: Ironwall Knight + Silvershade. Style match between generations confirmed — the template approach works
+- **Art style locked after A/B testing**: stylized chunky board-game proportions ("chibi") won over realistic-heroic and 80s-simple variants (realistic/simple attempts came out worse — Tripo struggles with fine detail). Full prompt library + template + lessons in `godot/assets/models/TRIPO_PROMPTS.md` (5 remaining unit prompts ready: Whisper, Ember, 3 bandits)
+- **Miniatures pivot**: game system now assumes minis with sculpted bases (base included in the model, like physical minis). Tripo prompts have a 1000-char limit
+- **Debug hooks added**: `BOARD_SCREENSHOT=/path.png` + `BOARD_SCENE=N` + `BOARD_CAM="yaw,pitch,dist[,tx,ty,tz]"` env vars capture board screenshots headless-ish for visual checks
+- **Next steps**: generate remaining 5 minis from prompt library; faction-colored ring around sculpted bases (blue disc now hidden under real models); rotate minis to face nearest enemy zone; port combat logic (combatHelpers.js → GDScript) + turn loop; decide when React prototype goes reference-only

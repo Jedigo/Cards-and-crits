@@ -20,7 +20,12 @@
       "Bash(/home/Jedigo/.linuxbrew/bin/git --version)",
       "Read(//home/**)",
       "Read(//run/host/var/home/linuxbrew/.linuxbrew/Cellar/git/2.53.0_1/bin/**)",
-      "Bash(/run/host/var/home/linuxbrew/.linuxbrew/bin/git --version)"
+      "Bash(/run/host/var/home/linuxbrew/.linuxbrew/bin/git --version)",
+      "Bash(node:*)",
+      "WebFetch(domain:mmos.com)",
+      "WebFetch(domain:www.cardhunter.com)",
+      "WebSearch",
+      "Skill(close-session)"
     ]
   }
 }
